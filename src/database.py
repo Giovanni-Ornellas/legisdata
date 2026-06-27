@@ -1,4 +1,5 @@
 import os
+import tempfile
 from typing import Any
 
 import mysql.connector
@@ -62,6 +63,7 @@ def build_connection_kwargs(config: dict[str, Any], autocommit: bool = True) -> 
 
     ssl_mode = str(config.get("ssl_mode", "") or "").upper()
     ssl_ca = str(config.get("ssl_ca", "") or "").strip()
+    ssl_ca_content = str(config.get("ssl_ca_content", "") or "").strip()
 
     if ssl_mode == "DISABLED":
         kwargs["ssl_disabled"] = True
@@ -70,7 +72,18 @@ def build_connection_kwargs(config: dict[str, Any], autocommit: bool = True) -> 
     if ssl_mode or ssl_ca:
         kwargs["ssl_disabled"] = False
 
-    if ssl_ca:
+    if ssl_ca_content:
+        cert_file = tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            prefix="aiven-ca-",
+            suffix=".pem",
+            delete=False,
+        )
+        cert_file.write(ssl_ca_content)
+        cert_file.close()
+        kwargs["ssl_ca"] = cert_file.name
+    elif ssl_ca:
         if not os.path.isabs(ssl_ca):
             ssl_ca = os.path.join(BASE_DIR, ssl_ca)
         kwargs["ssl_ca"] = ssl_ca

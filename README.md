@@ -195,6 +195,25 @@ ssl_verify_identity = false
 
 Baixe o certificado CA no painel do Aiven e salve localmente em `certs/aiven-ca.pem`. Arquivos `.pem` e `.crt` dentro de `certs/` estao ignorados pelo Git.
 
+No Streamlit Cloud, o arquivo local `.streamlit/secrets.toml` nao e enviado para o servidor. Nesse caso, abra a aplicacao no Streamlit Cloud, entre em `App settings > Secrets` e cole os dados no formato abaixo. Use `ssl_ca_content` para colar o conteudo completo do certificado CA:
+
+```toml
+[mysql]
+host = "SEU_HOST_AIVEN"
+port = 18646
+database = "defaultdb"
+user = "avnadmin"
+password = "SUA_SENHA_AIVEN"
+ssl_mode = "REQUIRED"
+ssl_ca_content = """
+-----BEGIN CERTIFICATE-----
+COLE_AQUI_O_CA_CERTIFICATE_DO_AIVEN
+-----END CERTIFICATE-----
+"""
+ssl_verify_cert = true
+ssl_verify_identity = false
+```
+
 Para levar os dados locais para o Aiven, primeiro exporte o banco local:
 
 ```bash

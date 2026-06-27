@@ -743,7 +743,11 @@ def main() -> None:
         config_items = config_to_cache_key(config)
         get_connection(config_items)
     except MySQLError as exc:
-        st.error("Nao foi possivel conectar ao MySQL local.")
+        st.error("Nao foi possivel conectar ao MySQL configurado.")
+        st.info(
+            "Se a aplicacao estiver no Streamlit Cloud, configure os dados do Aiven "
+            "em App settings > Secrets. Sem esses secrets, o app tenta usar o MySQL local."
+        )
         st.caption(f"Detalhe tecnico: {exc}")
         st.stop()
     except Exception as exc:
