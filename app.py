@@ -7,13 +7,13 @@ from src.database import connect_mysql, get_config_from_env, run_select_query
 
 
 st.set_page_config(
-    page_title="Analise Legislativa - Camara dos Deputados",
+    page_title="Análise Legislativa - Câmara dos Deputados",
     layout="wide",
 )
 
 
 COUNT_QUERY = """
-SELECT 'Proposicoes' AS metrica, COUNT(*) AS total FROM Proposicao
+SELECT 'Proposições' AS metrica, COUNT(*) AS total FROM Proposicao
 UNION ALL
 SELECT 'Deputados' AS metrica, COUNT(*) AS total FROM Deputado
 UNION ALL
@@ -21,7 +21,7 @@ SELECT 'Partidos' AS metrica, COUNT(*) AS total FROM Partido
 UNION ALL
 SELECT 'Temas' AS metrica, COUNT(*) AS total FROM Tema
 UNION ALL
-SELECT 'Tramitacoes' AS metrica, COUNT(*) AS total FROM Tramitacao
+SELECT 'Tramitações' AS metrica, COUNT(*) AS total FROM Tramitacao
 UNION ALL
 SELECT 'Autorias' AS metrica, COUNT(*) AS total FROM Participa;
 """
@@ -273,7 +273,7 @@ SPECTRUM_MAP = {
     "PCdoB": "Esquerda",
     "PDT": "Centro-Esquerda",
     "PL": "Direita",
-    "PODE": "Visao Independente",
+    "PODE": "Visão Independente",
     "PP": "Centro-Direita",
     "PRD": "Centro-Direita",
     "PSB": "Centro-Esquerda",
@@ -289,13 +289,52 @@ SPECTRUM_MAP = {
 }
 
 SPECTRUM_COLORS = {
-    "Nao atribuido": "#B8B8B8",
+    "Não atribuído": "#B8B8B8",
     "Esquerda": "#C43C39",
     "Centro-Esquerda": "#E68A70",
     "Centro": "#8C7AA9",
     "Centro-Direita": "#5F8CCB",
     "Direita": "#2457A6",
-    "Visao Independente": "#6D6D6D",
+    "Visão Independente": "#6D6D6D",
+}
+
+DISPLAY_COLUMN_LABELS = {
+    "proposicao_id": "ID da proposição",
+    "partido_id": "ID do partido",
+    "deputado_id": "ID do deputado",
+    "tema_cod": "Código do tema",
+    "partido": "Partido",
+    "nome_partido": "Nome do partido",
+    "deputado": "Deputado",
+    "sigla_uf": "UF",
+    "Sigla_tipo": "Tipo",
+    "numero": "Número",
+    "ano": "Ano",
+    "ementa": "Ementa",
+    "tema": "Tema",
+    "temas": "Temas",
+    "autores": "Autores",
+    "partidos": "Partidos",
+    "proposicao": "Proposição",
+    "descricao_tipo": "Tipo de proposição",
+    "data_apresentacao": "Data de apresentação",
+    "data_ultima_tramitacao": "Data da última tramitação",
+    "descricao_situacao": "Situação",
+    "descricao_tramitacao": "Tramitação",
+    "sigla_orgao": "Órgão",
+    "nome_orgao": "Nome do órgão",
+    "sequencia": "Sequência",
+    "quantidade": "Quantidade",
+    "quantidade_autores": "Quantidade de autores",
+    "quantidade_deputados_autores": "Deputados autores",
+    "quantidade_proposicoes": "Quantidade de proposições",
+    "quantidade_proposicoes_assinadas": "Proposições assinadas",
+    "quantidade_como_proponente": "Como proponente",
+    "quantidade_tramitacoes": "Quantidade de tramitações",
+    "link_camara": "Link da Câmara",
+    "mes_apresentacao": "Mês de apresentação",
+    "classificacao": "Classificação",
+    "espectro": "Espectro",
 }
 
 
@@ -333,11 +372,15 @@ def show_dataframe(
     if df.empty:
         st.info(empty_message)
         return
+    display_df = df.rename(columns=DISPLAY_COLUMN_LABELS)
+    display_link_columns = {}
+    for key, value in (link_columns or {}).items():
+        display_link_columns[DISPLAY_COLUMN_LABELS.get(key, key)] = value
     st.dataframe(
-        df,
+        display_df,
         width="stretch",
         hide_index=True,
-        column_config=link_columns,
+        column_config=display_link_columns or None,
     )
 
 
@@ -354,14 +397,22 @@ def download_csv(df: pd.DataFrame, filename: str) -> None:
 
 def plot_bar(df: pd.DataFrame, x: str, y: str, title: str, top_n: int = 10, horizontal: bool = False) -> None:
     if df.empty or x not in df or y not in df:
-        st.info("Nao ha dados suficientes para o grafico.")
+        st.info("Não há dados suficientes para o gráfico.")
         return
     chart_df = df.head(top_n).copy()
     if horizontal:
-        fig = px.bar(chart_df, x=y, y=x, orientation="h", title=title, text=y)
+        fig = px.bar(
+            chart_df,
+            x=y,
+            y=x,
+            orientation="h",
+            title=title,
+            text=y,
+            labels=DISPLAY_COLUMN_LABELS,
+        )
         fig.update_layout(yaxis={"categoryorder": "total ascending"})
     else:
-        fig = px.bar(chart_df, x=x, y=y, title=title, text=y)
+        fig = px.bar(chart_df, x=x, y=y, title=title, text=y, labels=DISPLAY_COLUMN_LABELS)
     fig.update_layout(margin=dict(l=10, r=10, t=50, b=10), showlegend=False)
     st.plotly_chart(fig, width="stretch")
 
@@ -394,17 +445,17 @@ def prepare_base(df: pd.DataFrame) -> pd.DataFrame:
 def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("Filtros")
 
-    termo = st.sidebar.text_input("Busca textual", help="Filtra por proposicao, ementa, autor, partido, tema ou situacao.")
-    tipos = st.sidebar.multiselect("Tipo de proposicao", sorted(df["Sigla_tipo"].dropna().unique()))
+    termo = st.sidebar.text_input("Busca textual", help="Filtra por proposição, ementa, autor, partido, tema ou situação.")
+    tipos = st.sidebar.multiselect("Tipo de proposição", sorted(df["Sigla_tipo"].dropna().unique()))
     partidos = st.sidebar.multiselect("Partido", split_values(df["partidos"]))
     temas = st.sidebar.multiselect("Tema", split_values(df["temas"]))
-    situacoes = st.sidebar.multiselect("Situacao", sorted(df["descricao_situacao"].dropna().unique()))
+    situacoes = st.sidebar.multiselect("Situação", sorted(df["descricao_situacao"].dropna().unique()))
 
     min_date = df["data_apresentacao"].min()
     max_date = df["data_apresentacao"].max()
     if pd.notna(min_date) and pd.notna(max_date):
         periodo = st.sidebar.date_input(
-            "Periodo de apresentacao",
+            "Período de apresentação",
             value=(min_date.date(), max_date.date()),
             min_value=min_date.date(),
             max_value=max_date.date(),
@@ -412,14 +463,14 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     else:
         periodo = ()
 
-    somente_sem_tema = st.sidebar.checkbox("Somente proposicoes sem tema")
+    somente_sem_tema = st.sidebar.checkbox("Somente proposições sem tema")
     ordenacao = st.sidebar.radio(
         "Ordenar por",
         [
-            "Data de apresentacao mais recente",
-            "Mais tramitacoes",
+            "Data de apresentação mais recente",
+            "Mais tramitações",
             "Mais autores",
-            "Numero da proposicao",
+            "Número da proposição",
         ],
     )
 
@@ -458,11 +509,11 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     if somente_sem_tema:
         filtered = filtered[filtered["temas"] == "Sem tema associado"]
 
-    if ordenacao == "Mais tramitacoes":
+    if ordenacao == "Mais tramitações":
         filtered = filtered.sort_values(["quantidade_tramitacoes", "data_apresentacao"], ascending=[False, False])
     elif ordenacao == "Mais autores":
         filtered = filtered.sort_values(["quantidade_autores", "data_apresentacao"], ascending=[False, False])
-    elif ordenacao == "Numero da proposicao":
+    elif ordenacao == "Número da proposição":
         filtered = filtered.sort_values(["Sigla_tipo", "numero", "ano"], ascending=[True, True, False])
     else:
         filtered = filtered.sort_values(["data_apresentacao", "proposicao_id"], ascending=[False, False])
@@ -473,11 +524,11 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
 def render_metric_row(df: pd.DataFrame) -> None:
     cols = st.columns(6)
     values = [
-        ("Proposicoes", df["proposicao_id"].nunique()),
+        ("Proposições", df["proposicao_id"].nunique()),
         ("Deputados autores", int(df["quantidade_autores"].sum())),
         ("Partidos", len(split_values(df["partidos"]))),
         ("Temas", len(split_values(df["temas"]))),
-        ("Tramitacoes", int(df["quantidade_tramitacoes"].sum())),
+        ("Tramitações", int(df["quantidade_tramitacoes"].sum())),
         ("Sem tema", int((df["temas"] == "Sem tema associado").sum())),
     ]
     for col, (label, value) in zip(cols, values):
@@ -489,12 +540,12 @@ def render_visao_geral(
     base_df: pd.DataFrame,
     filtered_df: pd.DataFrame,
 ) -> None:
-    st.subheader("Visao Geral")
+    st.subheader("Visão Geral")
     counts = query_df(COUNT_QUERY, config_items)
     if not counts.empty:
         values = dict(zip(counts["metrica"], counts["total"]))
         cols = st.columns(6)
-        for col, key in zip(cols, ["Proposicoes", "Deputados", "Partidos", "Temas", "Tramitacoes", "Autorias"]):
+        for col, key in zip(cols, ["Proposições", "Deputados", "Partidos", "Temas", "Tramitações", "Autorias"]):
             col.metric(key, int(values.get(key, 0)))
 
     st.markdown("#### Recorte filtrado")
@@ -513,7 +564,14 @@ def render_visao_geral(
             .rename(columns={"size": "quantidade"})
         )
         if not by_month.empty:
-            fig = px.line(by_month, x="mes_apresentacao", y="quantidade", markers=True, title="Proposicoes por mes")
+            fig = px.line(
+                by_month,
+                x="mes_apresentacao",
+                y="quantidade",
+                markers=True,
+                title="Proposições por mês",
+                labels=DISPLAY_COLUMN_LABELS,
+            )
             st.plotly_chart(fig, width="stretch")
     with col2:
         by_type = (
@@ -522,25 +580,31 @@ def render_visao_geral(
             .rename(columns={"size": "quantidade"})
             .sort_values("quantidade", ascending=False)
         )
-        plot_bar(by_type, "Sigla_tipo", "quantidade", "Proposicoes por tipo", top_n=12)
+        plot_bar(by_type, "Sigla_tipo", "quantidade", "Proposições por tipo", top_n=12)
 
     col3, col4 = st.columns(2)
     with col3:
         by_situation = (
-            filtered_df.fillna({"descricao_situacao": "Sem situacao"})
+            filtered_df.fillna({"descricao_situacao": "Sem situação"})
             .groupby("descricao_situacao", as_index=False)
             .size()
             .rename(columns={"size": "quantidade"})
             .sort_values("quantidade", ascending=False)
         )
-        plot_bar(by_situation, "descricao_situacao", "quantidade", "Situacao atual", top_n=10, horizontal=True)
+        plot_bar(by_situation, "descricao_situacao", "quantidade", "Situação atual", top_n=10, horizontal=True)
     with col4:
         sem_tema = int((base_df["temas"] == "Sem tema associado").sum())
         com_tema = int(len(base_df) - sem_tema)
         tema_df = pd.DataFrame(
             {"classificacao": ["Com tema", "Sem tema"], "quantidade": [com_tema, sem_tema]}
         )
-        fig = px.pie(tema_df, names="classificacao", values="quantidade", title="Cobertura de classificacao tematica")
+        fig = px.pie(
+            tema_df,
+            names="classificacao",
+            values="quantidade",
+            title="Cobertura de classificação temática",
+            labels=DISPLAY_COLUMN_LABELS,
+        )
         st.plotly_chart(fig, width="stretch")
 
 
@@ -550,11 +614,11 @@ def render_ranking_partidos(
 ) -> None:
     st.subheader("Ranking de Partidos")
     df = query_df(RANKING_PARTIDOS_QUERY, config_items)
-    plot_bar(df, "partido", "quantidade_proposicoes", "Top partidos por proposicoes", top_n=10)
+    plot_bar(df, "partido", "quantidade_proposicoes", "Top partidos por proposições", top_n=10)
     show_dataframe(df)
     download_csv(df, "ranking_partidos.csv")
 
-    st.markdown("#### Distribuicao no recorte filtrado")
+    st.markdown("#### Distribuição no recorte filtrado")
     rows = []
     for _, row in filtered_df.iterrows():
         for partido in str(row["partidos"]).split(","):
@@ -570,19 +634,19 @@ def render_ranking_partidos(
         )
         plot_bar(local_df, "partido", "quantidade", "Partidos no recorte filtrado", top_n=10)
     else:
-        st.info("Nao ha partidos no recorte filtrado.")
+        st.info("Não há partidos no recorte filtrado.")
 
 
 def render_ranking_deputados(config_items: tuple[tuple[str, str], ...]) -> None:
     st.subheader("Ranking de Deputados")
     df = query_df(RANKING_DEPUTADOS_QUERY, config_items)
-    plot_bar(df, "deputado", "quantidade_proposicoes_assinadas", "Top deputados por proposicoes", top_n=10)
+    plot_bar(df, "deputado", "quantidade_proposicoes_assinadas", "Top deputados por proposições", top_n=10)
     show_dataframe(df)
     download_csv(df, "ranking_deputados.csv")
 
 
 def render_proposicoes_temas(filtered_df: pd.DataFrame) -> None:
-    st.subheader("Proposicoes e Temas")
+    st.subheader("Proposições e Temas")
     cols = [
         "proposicao",
         "data_apresentacao",
@@ -594,16 +658,16 @@ def render_proposicoes_temas(filtered_df: pd.DataFrame) -> None:
         "link_camara",
     ]
     sem_tema = int((filtered_df["temas"] == "Sem tema associado").sum())
-    st.caption(f"{sem_tema} proposicoes no recorte aparecem sem tema associado e permanecem visiveis pelo LEFT JOIN.")
+    st.caption(f"{sem_tema} proposições no recorte aparecem sem tema associado e permanecem visíveis pelo LEFT JOIN.")
     show_dataframe(
         filtered_df[cols],
-        link_columns={"link_camara": st.column_config.LinkColumn("Camara")},
+        link_columns={"link_camara": st.column_config.LinkColumn("Câmara")},
     )
     download_csv(filtered_df[cols], "proposicoes_temas.csv")
 
 
 def render_ultima_tramitacao(filtered_df: pd.DataFrame) -> None:
-    st.subheader("Ultima Tramitacao")
+    st.subheader("Última Tramitação")
     cols = [
         "proposicao",
         "data_ultima_tramitacao",
@@ -616,15 +680,15 @@ def render_ultima_tramitacao(filtered_df: pd.DataFrame) -> None:
     ]
     show_dataframe(
         filtered_df[cols],
-        link_columns={"link_camara": st.column_config.LinkColumn("Camara")},
+        link_columns={"link_camara": st.column_config.LinkColumn("Câmara")},
     )
     download_csv(filtered_df[cols], "ultima_tramitacao.csv")
 
 
 def render_temas_acima_media(config_items: tuple[tuple[str, str], ...], filtered_df: pd.DataFrame) -> None:
-    st.subheader("Temas Acima da Media")
+    st.subheader("Temas Acima da Média")
     df = query_df(TEMAS_ACIMA_MEDIA_QUERY, config_items)
-    plot_bar(df, "tema", "quantidade_proposicoes", "Temas acima da media", top_n=10)
+    plot_bar(df, "tema", "quantidade_proposicoes", "Temas acima da média", top_n=10)
     show_dataframe(df)
     download_csv(df, "temas_acima_media.csv")
 
@@ -644,11 +708,11 @@ def render_temas_acima_media(config_items: tuple[tuple[str, str], ...], filtered
         )
         plot_bar(local_df, "tema", "quantidade", "Temas mais frequentes no recorte", top_n=12, horizontal=True)
     else:
-        st.info("Nao ha temas associados no recorte filtrado.")
+        st.info("Não há temas associados no recorte filtrado.")
 
 
 def render_tramitacoes_acima_media(config_items: tuple[tuple[str, str], ...]) -> None:
-    st.subheader("Proposicoes com Tramitacao Acima da Media")
+    st.subheader("Proposições com Tramitação Acima da Média")
     df = query_df(TRAMITACOES_ACIMA_MEDIA_QUERY, config_items)
     if not df.empty:
         chart_df = df.copy()
@@ -659,13 +723,13 @@ def render_tramitacoes_acima_media(config_items: tuple[tuple[str, str], ...]) ->
             + "/"
             + chart_df["ano"].astype(str)
         )
-        plot_bar(chart_df, "proposicao", "quantidade_tramitacoes", "Proposicoes mais movimentadas", top_n=10)
+        plot_bar(chart_df, "proposicao", "quantidade_tramitacoes", "Proposições mais movimentadas", top_n=10)
     show_dataframe(df)
     download_csv(df, "tramitacoes_acima_media.csv")
 
 
 def render_explorar(filtered_df: pd.DataFrame) -> None:
-    st.subheader("Explorar Proposicoes")
+    st.subheader("Explorar Proposições")
     rows_per_page = st.slider("Quantidade de linhas na tabela", min_value=10, max_value=200, value=50, step=10)
     cols = [
         "proposicao",
@@ -682,13 +746,13 @@ def render_explorar(filtered_df: pd.DataFrame) -> None:
     ]
     show_dataframe(
         filtered_df[cols].head(rows_per_page),
-        link_columns={"link_camara": st.column_config.LinkColumn("Camara")},
+        link_columns={"link_camara": st.column_config.LinkColumn("Câmara")},
     )
     download_csv(filtered_df[cols], "proposicoes_filtradas.csv")
 
 
 def render_espectro(filtered_df: pd.DataFrame) -> None:
-    st.subheader("Distribuicao por Espectro Politico")
+    st.subheader("Distribuição por Espectro Político")
     rows = []
     for _, row in filtered_df.iterrows():
         for partido in str(row["partidos"]).split(","):
@@ -697,16 +761,16 @@ def render_espectro(filtered_df: pd.DataFrame) -> None:
                 rows.append(
                     {
                         "partido": partido,
-                        "espectro": SPECTRUM_MAP.get(partido, "Nao atribuido"),
+                        "espectro": SPECTRUM_MAP.get(partido, "Não atribuído"),
                         "quantidade": 1,
                     }
                 )
     if not rows:
-        st.info("Nao ha partidos no recorte filtrado.")
+        st.info("Não há partidos no recorte filtrado.")
         return
 
     df = pd.DataFrame(rows).groupby(["espectro", "partido"], as_index=False)["quantidade"].sum()
-    tab_tree, tab_bar = st.tabs(["Mapa de arvore", "Barras"])
+    tab_tree, tab_bar = st.tabs(["Mapa de árvore", "Barras"])
     with tab_tree:
         fig = px.treemap(
             df,
@@ -714,6 +778,7 @@ def render_espectro(filtered_df: pd.DataFrame) -> None:
             values="quantidade",
             color="espectro",
             color_discrete_map=SPECTRUM_COLORS,
+            labels=DISPLAY_COLUMN_LABELS,
         )
         fig.update_traces(textinfo="label+value")
         st.plotly_chart(fig, width="stretch")
@@ -726,16 +791,17 @@ def render_espectro(filtered_df: pd.DataFrame) -> None:
             color="espectro",
             color_discrete_map=SPECTRUM_COLORS,
             text="quantidade",
-            title="Proposicoes por espectro no recorte filtrado",
+            title="Proposições por espectro no recorte filtrado",
+            labels=DISPLAY_COLUMN_LABELS,
         )
         st.plotly_chart(fig, width="stretch")
 
 
 def main() -> None:
-    st.title("Analise Legislativa - Camara dos Deputados")
+    st.title("Análise Legislativa - Câmara dos Deputados")
     st.write(
-        "Dados coletados da API de Dados Abertos da Camara dos Deputados e organizados "
-        "em um banco relacional MySQL para consulta e visualizacao."
+        "Dados coletados da API de Dados Abertos da Câmara dos Deputados e organizados "
+        "em um banco relacional MySQL para consulta e visualização."
     )
 
     try:
@@ -743,36 +809,36 @@ def main() -> None:
         config_items = config_to_cache_key(config)
         get_connection(config_items)
     except MySQLError as exc:
-        st.error("Nao foi possivel conectar ao MySQL configurado.")
+        st.error("Não foi possível conectar ao MySQL configurado.")
         st.info(
-            "Se a aplicacao estiver no Streamlit Cloud, configure os dados do Aiven "
+            "Se a aplicação estiver no Streamlit Cloud, configure os dados do Aiven "
             "em App settings > Secrets. Sem esses secrets, o app tenta usar o MySQL local."
         )
-        st.caption(f"Detalhe tecnico: {exc}")
+        st.caption(f"Detalhe técnico: {exc}")
         st.stop()
     except Exception as exc:
-        st.error("Falha ao carregar a configuracao de conexao.")
-        st.caption(f"Detalhe tecnico: {exc}")
+        st.error("Falha ao carregar a configuração de conexão.")
+        st.caption(f"Detalhe técnico: {exc}")
         st.stop()
 
     base_df = prepare_base(query_df(BASE_PROPOSICOES_QUERY, config_items))
     if base_df.empty:
-        st.warning("Nao ha proposicoes carregadas no banco.")
+        st.warning("Não há proposições carregadas no banco.")
         st.stop()
 
     filtered_df = apply_sidebar_filters(base_df)
 
     tabs = st.tabs(
         [
-            "Visao Geral",
+            "Visão Geral",
             "Ranking de Partidos",
             "Ranking de Deputados",
-            "Proposicoes e Temas",
-            "Ultima Tramitacao",
-            "Temas Acima da Media",
-            "Tramitacoes Acima da Media",
+            "Proposições e Temas",
+            "Última Tramitação",
+            "Temas Acima da Média",
+            "Tramitações Acima da Média",
             "Explorar",
-            "Espectro Politico",
+            "Espectro Político",
         ]
     )
 
