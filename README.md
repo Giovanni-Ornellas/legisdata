@@ -170,4 +170,49 @@ A aplicacao tambem possui filtros globais na barra lateral para busca textual, t
 
 ## Migracao futura para Aiven
 
-A aplicacao ainda usa o MySQL local. Em uma etapa futura, a migracao para Aiven podera ser feita trocando apenas os dados de conexao em `.streamlit/secrets.toml`. Nao ha credenciais reais de Aiven no repositorio.
+A aplicacao pode usar o MySQL local ou um MySQL hospedado no Aiven. Nao ha credenciais reais de Aiven no repositorio.
+
+Para apontar o Streamlit para o Aiven, copie o exemplo de secrets e preencha o arquivo local, que nao deve ser commitado:
+
+```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+```
+
+Modelo de configuracao para Aiven:
+
+```toml
+[mysql]
+host = "SEU_HOST_AIVEN"
+port = 18646
+database = "defaultdb"
+user = "avnadmin"
+password = "SUA_SENHA_AIVEN"
+ssl_mode = "REQUIRED"
+ssl_ca = "certs/aiven-ca.pem"
+ssl_verify_cert = true
+ssl_verify_identity = false
+```
+
+Baixe o certificado CA no painel do Aiven e salve localmente em `certs/aiven-ca.pem`. Arquivos `.pem` e `.crt` dentro de `certs/` estao ignorados pelo Git.
+
+Para levar os dados locais para o Aiven, primeiro exporte o banco local:
+
+```bash
+mysqldump --single-transaction --no-tablespaces \
+  -h 127.0.0.1 -P 3307 -u bdi -p trabalho_final > dump_trabalho_final.sql
+```
+
+Depois importe no banco `defaultdb` do Aiven:
+
+```bash
+mysql --ssl-mode=REQUIRED \
+  -h SEU_HOST_AIVEN -P 18646 -u avnadmin -p defaultdb < dump_trabalho_final.sql
+```
+
+Com o `.streamlit/secrets.toml` preenchido, execute:
+
+```bash
+streamlit run app.py
+```
+
+Os scripts `scripts/popular_banco.py` e `scripts/validar_banco.py` tambem aceitam as variaveis `MYSQL_SSL_MODE`, `MYSQL_SSL_CA`, `MYSQL_SSL_VERIFY_CERT` e `MYSQL_SSL_VERIFY_IDENTITY` no `.env`.

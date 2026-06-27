@@ -1,11 +1,13 @@
 import os
+import sys
 from typing import Any
-
-import mysql.connector
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
+sys.path.insert(0, BASE_DIR)
+
+from src.database import connect_mysql, get_config_from_env  # noqa: E402
 
 TABLES = [
     "Partido",
@@ -31,24 +33,8 @@ def load_env_file(path: str = ENV_PATH) -> None:
             os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
-def env_int(name: str, default: int) -> int:
-    value = os.getenv(name)
-    if not value:
-        return default
-    try:
-        return int(value)
-    except ValueError:
-        return default
-
-
 def connect():
-    return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST", "127.0.0.1"),
-        port=env_int("MYSQL_PORT", 3307),
-        database=os.getenv("MYSQL_DATABASE", "trabalho_final"),
-        user=os.getenv("MYSQL_USER", "bdi"),
-        password=os.getenv("MYSQL_PASSWORD", "bdi"),
-    )
+    return connect_mysql(get_config_from_env())
 
 
 def print_rows(columns: list[str], rows: list[tuple[Any, ...]]) -> None:

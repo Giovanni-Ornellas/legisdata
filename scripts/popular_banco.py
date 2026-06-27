@@ -1,17 +1,20 @@
 import logging
 import os
 import re
+import sys
 import time
 from datetime import datetime
 from typing import Any
 
-import mysql.connector
 import requests
 from mysql.connector import Error as MySQLError
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
+sys.path.insert(0, BASE_DIR)
+
+from src.database import connect_mysql, get_config_from_env  # noqa: E402
 
 DEFAULT_API_BASE_URL = "https://dadosabertos.camara.leg.br/api/v2"
 DEFAULT_TIMEOUT = 30
@@ -198,14 +201,7 @@ class CamaraAPI:
 
 class Banco:
     def __init__(self):
-        self.conn = mysql.connector.connect(
-            host=os.getenv("MYSQL_HOST", "127.0.0.1"),
-            port=env_int("MYSQL_PORT", 3307),
-            database=os.getenv("MYSQL_DATABASE", "trabalho_final"),
-            user=os.getenv("MYSQL_USER", "bdi"),
-            password=os.getenv("MYSQL_PASSWORD", "bdi"),
-            autocommit=False,
-        )
+        self.conn = connect_mysql(get_config_from_env(), autocommit=False)
 
     def close(self) -> None:
         self.conn.close()

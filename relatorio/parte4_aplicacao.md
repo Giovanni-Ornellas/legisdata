@@ -61,4 +61,8 @@ O arquivo `.streamlit/secrets.toml` deve conter os dados de conexão local com o
 
 ## Preparação para Aiven
 
-A aplicação foi preparada para uma migração futura para Aiven sem alteração no código principal. Quando a migração for realizada, bastará alterar os dados de conexão em `.streamlit/secrets.toml`, substituindo host, porta, usuário, senha e banco pelos valores fornecidos pela instância Aiven. Nenhuma credencial real do Aiven foi adicionada ao projeto nesta etapa.
+A aplicação foi preparada para utilizar o MySQL local ou uma instância MySQL hospedada no Aiven sem alteração no código principal. Para isso, a camada de conexão aceita parâmetros de SSL, como `ssl_mode`, `ssl_ca`, `ssl_verify_cert` e `ssl_verify_identity`.
+
+Na migração para Aiven, basta alterar os dados de conexão em `.streamlit/secrets.toml`, substituindo host, porta, usuário, senha e banco pelos valores fornecidos pela instância Aiven. Como o serviço Aiven exige conexão criptografada, o modo SSL deve ser configurado como `REQUIRED`, com possibilidade de informar o certificado CA baixado no painel do serviço.
+
+Nenhuma credencial real do Aiven foi adicionada ao projeto. O arquivo real `.streamlit/secrets.toml` permanece local e não é versionado.
