@@ -2,6 +2,39 @@
 
 Projeto final da disciplina Banco de Dados I - ICP489.
 
+O objetivo do projeto é coletar, organizar e visualizar dados legislativos da Câmara dos Deputados em um banco relacional MySQL. A aplicação Web foi feita em Streamlit e é somente de leitura: ela consulta o banco, exibe tabelas, métricas e gráficos, mas não insere, altera nem exclui registros.
+
+## Estrutura de pastas
+
+```text
+.
+├── app.py
+├── src/
+│   ├── database.py
+│   ├── queries.py
+│   ├── services.py
+│   ├── components/
+│   └── views/
+├── scripts/
+├── sql/
+├── relatorio/
+├── docs/
+├── tests/
+└── .streamlit/
+```
+
+- `app.py`: inicialização da aplicação, cabeçalho, tratamento de conexão e navegação por abas.
+- `src/database.py`: conexão com MySQL, suporte a Aiven/SSL e execução segura de consultas.
+- `src/queries.py`: consultas SQL usadas pela aplicação.
+- `src/services.py`: funções que carregam dados, aplicam cache e preparam `DataFrame`.
+- `src/views/`: telas da aplicação, separadas por domínio.
+- `src/components/`: filtros, gráficos, métricas, tabelas e exportação CSV.
+- `scripts/`: scripts para popular e validar o banco.
+- `sql/`: modelo físico e consultas da Parte 3.
+- `docs/`: documentação técnica para manutenção em grupo.
+
+Mais detalhes estão em [`docs/estrutura.md`](docs/estrutura.md).
+
 ## Banco de dados local
 
 O projeto usa MySQL e o schema principal se chama `trabalho_final`.
@@ -124,11 +157,11 @@ python scripts/validar_banco.py
 
 Esse script imprime `COUNT(*)` e `SELECT * LIMIT 10` para todas as tabelas. A tabela `Participa` deve ser conferida explicitamente, pois ela representa a autoria entre deputados e proposições e é essencial para as consultas da Parte 3.
 
-## Aplicacao Streamlit
+## Aplicação Streamlit
 
-A Parte 4 do trabalho usa Streamlit para visualizar os dados carregados no MySQL local. A aplicacao e somente de leitura e reutiliza as consultas da Parte 3.
+A Parte 4 do trabalho usa Streamlit para visualizar os dados carregados no MySQL. A aplicação é somente de leitura e reutiliza as consultas da Parte 3.
 
-Instale as dependencias e prepare o arquivo de credenciais local:
+Instale as dependências e prepare o arquivo de credenciais local:
 
 ```bash
 python3 -m venv .venv
@@ -137,7 +170,7 @@ pip install -r requirements.txt
 cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 ```
 
-Com o MySQL local em execucao na porta `3307`, rode:
+Com o MySQL local em execução na porta `3307`, rode:
 
 ```bash
 streamlit run app.py
@@ -154,31 +187,41 @@ user = "bdi"
 password = "bdi"
 ```
 
-As abas implementadas sao:
+As abas implementadas são:
 
-- Visao Geral
+- Visão Geral
 - Ranking de Partidos
 - Ranking de Deputados
-- Proposicoes e Temas
-- Ultima Tramitacao
-- Temas Acima da Media
-- Tramitacoes Acima da Media
+- Proposições e Temas
+- Última Tramitação
+- Temas Acima da Média
+- Tramitações Acima da Média
 - Explorar
-- Espectro Politico
+- Espectro Político
 
-A aplicacao tambem possui filtros globais na barra lateral para busca textual, tipo de proposicao, partido, tema, situacao, periodo de apresentacao e proposicoes sem tema. As tabelas principais permitem exportacao em CSV, e os graficos usam Plotly para facilitar a leitura dos rankings e distribuicoes.
+A aplicação também possui filtros globais na barra lateral para busca textual, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. As tabelas principais permitem exportação em CSV, e os gráficos usam Plotly para facilitar a leitura dos rankings e distribuições.
 
-## Migracao futura para Aiven
+## Como contribuir sem quebrar a estrutura
 
-A aplicacao pode usar o MySQL local ou um MySQL hospedado no Aiven. Nao ha credenciais reais de Aiven no repositorio.
+- Nova consulta SQL da aplicação: adicionar em `src/queries.py`.
+- Nova função de carregamento/preparação de dados: adicionar em `src/services.py`.
+- Nova aba ou seção visual: criar arquivo em `src/views/` e registrar em `app.py`.
+- Novo gráfico, filtro, métrica ou tabela reutilizável: adicionar em `src/components/`.
+- Scripts de carga ou validação: manter em `scripts/`.
+- Não colocar credenciais reais no repositório.
+- Não executar comandos de escrita no banco pela aplicação Streamlit.
 
-Para apontar o Streamlit para o Aiven, copie o exemplo de secrets e preencha o arquivo local, que nao deve ser commitado:
+## Migração para Aiven
+
+A aplicação pode usar o MySQL local ou um MySQL hospedado no Aiven. Não há credenciais reais de Aiven no repositório.
+
+Para apontar o Streamlit para o Aiven, copie o exemplo de secrets e preencha o arquivo local, que não deve ser commitado:
 
 ```bash
 cp .streamlit/secrets.toml.example .streamlit/secrets.toml
 ```
 
-Modelo de configuracao para Aiven:
+Modelo de configuração para Aiven:
 
 ```toml
 [mysql]
@@ -193,9 +236,9 @@ ssl_verify_cert = true
 ssl_verify_identity = false
 ```
 
-Baixe o certificado CA no painel do Aiven e salve localmente em `certs/aiven-ca.pem`. Arquivos `.pem` e `.crt` dentro de `certs/` estao ignorados pelo Git.
+Baixe o certificado CA no painel do Aiven e salve localmente em `certs/aiven-ca.pem`. Arquivos `.pem` e `.crt` dentro de `certs/` estão ignorados pelo Git.
 
-No Streamlit Cloud, o arquivo local `.streamlit/secrets.toml` nao e enviado para o servidor. Nesse caso, abra a aplicacao no Streamlit Cloud, entre em `App settings > Secrets` e cole os dados no formato abaixo. Use `ssl_ca_content` para colar o conteudo completo do certificado CA:
+No Streamlit Cloud, o arquivo local `.streamlit/secrets.toml` não é enviado para o servidor. Nesse caso, abra a aplicação no Streamlit Cloud, entre em `App settings > Secrets` e cole os dados no formato abaixo. Use `ssl_ca_content` para colar o conteúdo completo do certificado CA:
 
 ```toml
 [mysql]
@@ -234,4 +277,4 @@ Com o `.streamlit/secrets.toml` preenchido, execute:
 streamlit run app.py
 ```
 
-Os scripts `scripts/popular_banco.py` e `scripts/validar_banco.py` tambem aceitam as variaveis `MYSQL_SSL_MODE`, `MYSQL_SSL_CA`, `MYSQL_SSL_VERIFY_CERT` e `MYSQL_SSL_VERIFY_IDENTITY` no `.env`.
+Os scripts `scripts/popular_banco.py` e `scripts/validar_banco.py` também aceitam as variáveis `MYSQL_SSL_MODE`, `MYSQL_SSL_CA`, `MYSQL_SSL_VERIFY_CERT` e `MYSQL_SSL_VERIFY_IDENTITY` no `.env`.
