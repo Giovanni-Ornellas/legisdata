@@ -1,6 +1,6 @@
 import os
+import re
 import tempfile
-import textwrap
 from typing import Any
 
 import mysql.connector
@@ -21,6 +21,20 @@ def _parse_bool(value: Any, default: bool = False) -> bool:
     if normalized in {"0", "false", "nao", "não", "n", "no"}:
         return False
     return default
+
+
+def _normalize_pem_content(value: str) -> str:
+    value = value.replace("\\n", "\n").replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line.strip() for line in value.splitlines() if line.strip()]
+    content = "\n".join(lines)
+    match = re.search(
+        r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----",
+        content,
+        flags=re.DOTALL,
+    )
+    if match:
+        content = match.group(0)
+    return content.strip() + "\n"
 
 
 def _load_env_file() -> None:
@@ -74,7 +88,7 @@ def build_connection_kwargs(config: dict[str, Any], autocommit: bool = True) -> 
         kwargs["ssl_disabled"] = False
 
     if ssl_ca_content:
-        ssl_ca_content = textwrap.dedent(ssl_ca_content).strip() + "\n"
+        ssl_ca_content = _normalize_pem_content(ssl_ca_content)
         cert_file = tempfile.NamedTemporaryFile(
             mode="w",
             encoding="utf-8",
