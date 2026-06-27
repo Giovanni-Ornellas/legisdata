@@ -12,7 +12,7 @@ A conexão é centralizada em `src/database.py`, que fornece funções reutiliz�
 
 ## Funcionalidades implementadas
 
-A aplicação apresenta sete abas principais:
+A aplicação apresenta nove abas principais:
 
 - Visão Geral: mostra métricas gerais do banco, como totais de proposições, deputados, partidos, temas, tramitações e relações de autoria.
 - Ranking de Partidos: apresenta os partidos com maior quantidade de proposições associadas a seus deputados.
@@ -21,6 +21,10 @@ A aplicação apresenta sete abas principais:
 - Última Tramitação: mostra a última tramitação conhecida de cada proposição.
 - Temas Acima da Média: destaca temas com quantidade de proposições acima da média.
 - Tramitações Acima da Média: lista proposições com número de tramitações acima da média.
+- Explorar: disponibiliza uma tabela geral de proposições filtradas, com autores, partidos, temas, situação, tramitações e link para a página da Câmara.
+- Espectro Político: agrupa os partidos por uma classificação de espectro político para apoiar análises exploratórias da composição partidária das proposições.
+
+Além das abas, a aplicação possui uma barra lateral com filtros globais por texto, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. Esses filtros são aplicados às abas exploratórias e permitem simular recortes que seriam úteis em uma aplicação pública de consulta legislativa.
 
 ## Consultas utilizadas
 
@@ -37,7 +41,9 @@ Além dessas consultas, a aba de visão geral executa consultas de contagem (`CO
 
 ## Visualizações
 
-As visualizações incluem tabelas interativas com `st.dataframe`, métricas com `st.metric` e gráficos de barras simples com `st.bar_chart`. Os gráficos são usados para destacar rankings de partidos, rankings de deputados, temas recorrentes e proposições com maior quantidade de tramitações.
+As visualizações incluem tabelas interativas com `st.dataframe`, métricas com `st.metric`, gráficos de barras, gráfico de linha temporal, gráfico de pizza e mapa de árvore. A biblioteca Plotly é usada para melhorar a leitura dos rankings, distribuições por tipo, situação, tema, partido e espectro político.
+
+As principais tabelas também possuem botão de exportação em CSV, o que permite reaproveitar os resultados filtrados em planilhas ou anexos de análise.
 
 ## Como executar
 

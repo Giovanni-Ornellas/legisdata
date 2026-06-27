@@ -163,6 +163,10 @@ As abas implementadas sao:
 - Ultima Tramitacao
 - Temas Acima da Media
 - Tramitacoes Acima da Media
+- Explorar
+- Espectro Politico
+
+A aplicacao tambem possui filtros globais na barra lateral para busca textual, tipo de proposicao, partido, tema, situacao, periodo de apresentacao e proposicoes sem tema. As tabelas principais permitem exportacao em CSV, e os graficos usam Plotly para facilitar a leitura dos rankings e distribuicoes.
 
 ## Migracao futura para Aiven
 
