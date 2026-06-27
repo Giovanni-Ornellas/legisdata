@@ -53,6 +53,14 @@ As visualizações incluem tabelas interativas com `st.dataframe`, métricas com
 
 As principais tabelas também possuem botão de exportação em CSV, o que permite reaproveitar os resultados filtrados em planilhas ou anexos de análise.
 
+## Funcionalidades didáticas
+
+A aplicação também foi ampliada para facilitar o uso por pessoas sem familiaridade prévia com o processo legislativo. A página inicial apresenta o objetivo do sistema e orienta a navegação. A aba "Entenda uma Proposição" resume uma proposição específica, mostrando tipo, número, ano, ementa, autores, partidos, temas, situação e linha do tempo das tramitações registradas.
+
+A aba "Glossário" reúne explicações curtas para termos recorrentes nos dados, como proposição, projeto de lei, ementa, autor, órgão, tramitação, despacho, situação, plenário e comissão. As páginas principais também possuem cards explicativos e descrições das consultas da Parte 3, indicando o que cada visualização mostra, por que ela é útil e como interpretar os resultados.
+
+Todas as explicações são estáticas e baseadas nos campos disponíveis no banco. A aplicação não consulta APIs externas em tempo de execução e não produz conclusões jurídicas ou políticas.
+
 ## Como executar
 
 Com o MySQL local em execução e populado, a aplicação pode ser executada com os comandos:

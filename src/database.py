@@ -121,7 +121,7 @@ def connect_mysql(config: dict[str, Any], autocommit: bool = True):
     return mysql.connector.connect(**build_connection_kwargs(config, autocommit=autocommit))
 
 
-def run_select_query(connection, query: str) -> pd.DataFrame:
+def run_select_query(connection, query: str, params: tuple | None = None) -> pd.DataFrame:
     normalized = query.strip().lower()
     if not normalized.startswith("select") and not normalized.startswith("with"):
         raise ValueError("A aplicacao executa apenas consultas SELECT.")
@@ -129,7 +129,7 @@ def run_select_query(connection, query: str) -> pd.DataFrame:
     connection.ping(reconnect=True, attempts=2, delay=1)
     cursor = connection.cursor(dictionary=True)
     try:
-        cursor.execute(query)
+        cursor.execute(query, params or ())
         rows = cursor.fetchall()
         return pd.DataFrame(rows)
     finally:

@@ -2,12 +2,19 @@ import pandas as pd
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.help_text import render_help_box, render_query_explanation
 from src.components.tables import download_csv, show_dataframe
+from src.content.explicacoes_consultas import EXPLICACOES_CONSULTAS
 from src.services import get_temas_acima_media
 
 
 def render_temas_acima_media(config_items: tuple[tuple[str, str], ...], filtered_df: pd.DataFrame) -> None:
     st.subheader("Temas Acima da Média")
+    render_help_box(
+        "Para que servem os temas?",
+        "Temas são classificações de assunto. Eles ajudam a agrupar proposições por áreas como educação, saúde, economia ou administração pública.",
+    )
+    render_query_explanation(EXPLICACOES_CONSULTAS["temas_acima_media"])
     df = get_temas_acima_media(config_items)
     plot_bar(df, "tema", "quantidade_proposicoes", "Temas acima da média", top_n=10)
     show_dataframe(df)

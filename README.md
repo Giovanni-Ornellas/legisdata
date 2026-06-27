@@ -29,6 +29,7 @@ O objetivo do projeto é coletar, organizar e visualizar dados legislativos da C
 - `src/services.py`: funções que carregam dados, aplicam cache e preparam `DataFrame`.
 - `src/views/`: telas da aplicação, separadas por domínio.
 - `src/components/`: filtros, gráficos, métricas, tabelas e exportação CSV.
+- `src/content/`: glossário, explicações das consultas e textos didáticos.
 - `scripts/`: scripts para popular e validar o banco.
 - `sql/`: modelo físico e consultas da Parte 3.
 - `docs/`: documentação técnica para manutenção em grupo.
@@ -161,6 +162,8 @@ Esse script imprime `COUNT(*)` e `SELECT * LIMIT 10` para todas as tabelas. A ta
 
 A Parte 4 do trabalho usa Streamlit para visualizar os dados carregados no MySQL. A aplicação é somente de leitura e reutiliza as consultas da Parte 3.
 
+A interface foi pensada para usuários leigos. Além de tabelas e gráficos, ela inclui textos curtos explicando o que são proposições, autores, temas, tramitações, órgãos e situações registradas nos dados.
+
 Instale as dependências e prepare o arquivo de credenciais local:
 
 ```bash
@@ -190,6 +193,7 @@ password = "bdi"
 As abas implementadas são:
 
 - Visão Geral
+- Entenda uma Proposição
 - Ranking de Partidos
 - Ranking de Deputados
 - Proposições e Temas
@@ -198,8 +202,17 @@ As abas implementadas são:
 - Tramitações Acima da Média
 - Explorar
 - Espectro Político
+- Glossário
 
 A aplicação também possui filtros globais na barra lateral para busca textual, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. As tabelas principais permitem exportação em CSV, e os gráficos usam Plotly para facilitar a leitura dos rankings e distribuições.
+
+### Funcionalidades didáticas
+
+- Página inicial com orientação sobre o objetivo da aplicação.
+- Glossário legislativo com termos como proposição, ementa, tramitação, despacho, comissão e plenário.
+- Página "Entenda uma Proposição", com resumo, autores, partidos, temas, situação e linha do tempo de tramitação.
+- Explicações curtas para as consultas principais da Parte 3.
+- Cards explicativos nas páginas de proposições, temas, tramitações, partidos e deputados.
 
 ## Como contribuir sem quebrar a estrutura
 
@@ -207,6 +220,7 @@ A aplicação também possui filtros globais na barra lateral para busca textual
 - Nova função de carregamento/preparação de dados: adicionar em `src/services.py`.
 - Nova aba ou seção visual: criar arquivo em `src/views/` e registrar em `app.py`.
 - Novo gráfico, filtro, métrica ou tabela reutilizável: adicionar em `src/components/`.
+- Novo texto explicativo, glossário ou descrição de consulta: adicionar em `src/content/`.
 - Scripts de carga ou validação: manter em `scripts/`.
 - Não colocar credenciais reais no repositório.
 - Não executar comandos de escrita no banco pela aplicação Streamlit.

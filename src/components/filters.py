@@ -22,10 +22,15 @@ def contains_any_csv_value(cell: str, selected: list[str]) -> bool:
 def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("Filtros")
 
-    termo = st.sidebar.text_input("Busca textual", help="Filtra por proposição, ementa, autor, partido, tema ou situação.")
+    termo = st.sidebar.text_input(
+        "Texto da ementa ou palavra-chave",
+        help="Busca no texto da ementa e também em autores, partidos, temas e situação.",
+    )
+    anos = st.sidebar.multiselect("Ano da proposição", sorted(df["ano"].dropna().unique(), reverse=True))
     tipos = st.sidebar.multiselect("Tipo de proposição", sorted(df["Sigla_tipo"].dropna().unique()))
-    partidos = st.sidebar.multiselect("Partido", split_values(df["partidos"]))
-    temas = st.sidebar.multiselect("Tema", split_values(df["temas"]))
+    temas = st.sidebar.multiselect("Tema tratado", split_values(df["temas"]))
+    partidos = st.sidebar.multiselect("Partido do autor", split_values(df["partidos"]))
+    deputados = st.sidebar.multiselect("Deputado autor", split_values(df["autores"]))
     situacoes = st.sidebar.multiselect("Situação", sorted(df["descricao_situacao"].dropna().unique()))
 
     min_date = df["data_apresentacao"].min()
@@ -69,12 +74,16 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
             mask = mask | filtered[col].fillna("").str.lower().str.contains(termo_lower, regex=False)
         filtered = filtered[mask]
 
+    if anos:
+        filtered = filtered[filtered["ano"].isin(anos)]
     if tipos:
         filtered = filtered[filtered["Sigla_tipo"].isin(tipos)]
-    if partidos:
-        filtered = filtered[filtered["partidos"].apply(lambda value: contains_any_csv_value(value, partidos))]
     if temas:
         filtered = filtered[filtered["temas"].apply(lambda value: contains_any_csv_value(value, temas))]
+    if partidos:
+        filtered = filtered[filtered["partidos"].apply(lambda value: contains_any_csv_value(value, partidos))]
+    if deputados:
+        filtered = filtered[filtered["autores"].apply(lambda value: contains_any_csv_value(value, deputados))]
     if situacoes:
         filtered = filtered[filtered["descricao_situacao"].isin(situacoes)]
     if isinstance(periodo, tuple) and len(periodo) == 2:

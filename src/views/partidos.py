@@ -2,12 +2,19 @@ import pandas as pd
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.help_text import render_help_box, render_query_explanation
 from src.components.tables import download_csv, show_dataframe
+from src.content.explicacoes_consultas import EXPLICACOES_CONSULTAS
 from src.services import get_ranking_partidos
 
 
 def render_partidos(config_items: tuple[tuple[str, str], ...], filtered_df: pd.DataFrame) -> None:
     st.subheader("Ranking de Partidos")
+    render_help_box(
+        "O que são partidos nesta visualização?",
+        "Partidos aparecem associados aos deputados autores ou assinantes das proposições carregadas no banco.",
+    )
+    render_query_explanation(EXPLICACOES_CONSULTAS["ranking_partidos"])
     df = get_ranking_partidos(config_items)
     plot_bar(df, "partido", "quantidade_proposicoes", "Top partidos por proposições", top_n=10)
     show_dataframe(df)

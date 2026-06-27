@@ -25,6 +25,8 @@ DISPLAY_COLUMN_LABELS = {
     "data_ultima_tramitacao": "Data da última tramitação",
     "descricao_situacao": "Situação",
     "descricao_tramitacao": "Tramitação",
+    "despacho": "Despacho",
+    "apreciacao": "Apreciação",
     "sigla_orgao": "Órgão",
     "nome_orgao": "Nome do órgão",
     "sequencia": "Sequência",
@@ -39,6 +41,9 @@ DISPLAY_COLUMN_LABELS = {
     "mes_apresentacao": "Mês de apresentação",
     "classificacao": "Classificação",
     "espectro": "Espectro",
+    "termo": "Termo",
+    "explicacao": "Explicação",
+    "exemplo": "Exemplo",
 }
 
 

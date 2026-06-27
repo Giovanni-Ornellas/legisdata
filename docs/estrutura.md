@@ -10,6 +10,7 @@ Este projeto foi organizado para separar interface, regras de consulta e acesso 
 - `src/services.py`: camada intermediária entre as views e as queries. Carrega dados, aplica cache e prepara DataFrames.
 - `src/views/`: telas e seções da aplicação. Cada arquivo representa um domínio de visualização.
 - `src/components/`: componentes reutilizáveis de interface, como filtros, gráficos, métricas, tabelas e exportação CSV.
+- `src/content/`: textos didáticos, glossário legislativo e explicações das consultas.
 - `sql/`: scripts SQL do modelo físico e das consultas da Parte 3.
 - `scripts/`: scripts auxiliares para popular e validar o banco.
 - `relatorio/`: textos do relatório acadêmico.
@@ -45,8 +46,18 @@ Componentes reutilizáveis devem ficar em `src/components/`.
 - Filtros: `src/components/filters.py`
 - Métricas: `src/components/metrics.py`
 - Tabelas e downloads: `src/components/tables.py`
+- Textos de ajuda: `src/components/help_text.py`
+- Linha do tempo: `src/components/timeline.py`
 
 Se o código for usado por mais de uma tela, ele deve ficar em `components`. Se for específico de uma aba, pode ficar na própria view.
+
+## Onde Adicionar Textos Didáticos
+
+- Glossário: `src/content/glossario.py`
+- Explicações das consultas da Parte 3: `src/content/explicacoes_consultas.py`
+- Cards e textos reutilizáveis de interface: `src/components/help_text.py`
+
+Os textos devem ser curtos, descritivos e baseados nos dados disponíveis. A aplicação não deve gerar conclusões jurídicas ou políticas.
 
 ## Fluxo Recomendado
 

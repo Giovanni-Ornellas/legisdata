@@ -9,6 +9,7 @@ from src.queries import (
     RANKING_PARTIDOS_QUERY,
     TEMAS_ACIMA_MEDIA_QUERY,
     TRAMITACOES_ACIMA_MEDIA_QUERY,
+    TRAMITACOES_PROPOSICAO_QUERY,
 )
 
 
@@ -31,6 +32,16 @@ def get_connection(config_items: tuple[tuple[str, str], ...]):
 def load_data(query: str, config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
     connection = get_connection(config_items)
     return run_select_query(connection, query)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_data_with_params(
+    query: str,
+    params: tuple,
+    config_items: tuple[tuple[str, str], ...],
+) -> pd.DataFrame:
+    connection = get_connection(config_items)
+    return run_select_query(connection, query, params)
 
 
 def prepare_base(df: pd.DataFrame) -> pd.DataFrame:
@@ -63,3 +74,7 @@ def get_temas_acima_media(config_items: tuple[tuple[str, str], ...]) -> pd.DataF
 
 def get_tramitacoes_acima_media(config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
     return load_data(TRAMITACOES_ACIMA_MEDIA_QUERY, config_items)
+
+
+def get_tramitacoes_proposicao(config_items: tuple[tuple[str, str], ...], proposicao_id: int) -> pd.DataFrame:
+    return load_data_with_params(TRAMITACOES_PROPOSICAO_QUERY, (int(proposicao_id),), config_items)

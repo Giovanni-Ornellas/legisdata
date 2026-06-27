@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from src.components.charts import plot_bar, plot_line_by_month, plot_theme_coverage
+from src.components.help_text import render_help_box
 from src.components.metrics import render_metric_row
 from src.services import get_counts
 
@@ -12,6 +13,20 @@ def render_home(
     filtered_df: pd.DataFrame,
 ) -> None:
     st.subheader("Visão Geral")
+    render_help_box(
+        "Para que serve esta aplicação?",
+        "Esta aplicação ajuda a visualizar dados de proposições legislativas da Câmara dos Deputados. "
+        "Ela mostra quem propôs uma matéria, quais partidos aparecem, quais temas são tratados, "
+        "por onde a proposição tramitou e qual situação aparece nos dados carregados.",
+    )
+    with st.expander("Como navegar pelos dados?"):
+        st.markdown(
+            "- Use os filtros laterais para escolher ano, tipo de proposição, tema, partido ou deputado.\n"
+            "- A aba **Entenda uma Proposição** mostra um resumo didático de uma matéria específica.\n"
+            "- A aba **Glossário** explica termos como ementa, tramitação, despacho e comissão.\n"
+            "- Os rankings ajudam a responder quais partidos, deputados e temas aparecem com mais frequência."
+        )
+
     counts = get_counts(config_items)
     if not counts.empty:
         values = dict(zip(counts["metrica"], counts["total"]))

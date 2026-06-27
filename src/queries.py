@@ -196,3 +196,22 @@ ORDER BY
     pr.data_apresentacao DESC,
     pr.ID DESC;
 """
+
+TRAMITACOES_PROPOSICAO_QUERY = """
+SELECT
+    tr.sequencia,
+    tr.data_hora,
+    tr.descricao_tramitacao,
+    tr.descricao_situacao,
+    tr.despacho,
+    tr.apreciacao,
+    o.sigla AS sigla_orgao,
+    o.nome AS nome_orgao
+FROM Tramitacao tr
+LEFT JOIN Orgao o
+    ON o.ID = tr.fk_Orgao_ID
+WHERE tr.fk_Proposicao_ID = %s
+ORDER BY
+    tr.data_hora DESC,
+    tr.sequencia DESC;
+"""

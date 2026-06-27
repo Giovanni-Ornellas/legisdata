@@ -4,7 +4,9 @@ from mysql.connector import Error as MySQLError
 from src.components.filters import apply_sidebar_filters
 from src.services import config_to_cache_key, get_base_proposicoes, get_connection, get_mysql_config
 from src.views.deputados import render_deputados
+from src.views.entenda_proposicao import render_entenda_proposicao
 from src.views.espectro import render_espectro
+from src.views.glossario import render_glossario
 from src.views.home import render_home
 from src.views.partidos import render_partidos
 from src.views.proposicoes import render_explorar, render_proposicoes_temas
@@ -53,6 +55,7 @@ def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     tabs = st.tabs(
         [
             "Visão Geral",
+            "Entenda uma Proposição",
             "Ranking de Partidos",
             "Ranking de Deputados",
             "Proposições e Temas",
@@ -61,27 +64,32 @@ def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
             "Tramitações Acima da Média",
             "Explorar",
             "Espectro Político",
+            "Glossário",
         ]
     )
 
     with tabs[0]:
         render_home(config_items, base_df, filtered_df)
     with tabs[1]:
-        render_partidos(config_items, filtered_df)
+        render_entenda_proposicao(config_items, filtered_df)
     with tabs[2]:
-        render_deputados(config_items)
+        render_partidos(config_items, filtered_df)
     with tabs[3]:
-        render_proposicoes_temas(filtered_df)
+        render_deputados(config_items)
     with tabs[4]:
-        render_ultima_tramitacao(filtered_df)
+        render_proposicoes_temas(filtered_df)
     with tabs[5]:
-        render_temas_acima_media(config_items, filtered_df)
+        render_ultima_tramitacao(filtered_df)
     with tabs[6]:
-        render_tramitacoes_acima_media(config_items)
+        render_temas_acima_media(config_items, filtered_df)
     with tabs[7]:
-        render_explorar(filtered_df)
+        render_tramitacoes_acima_media(config_items)
     with tabs[8]:
+        render_explorar(filtered_df)
+    with tabs[9]:
         render_espectro(filtered_df)
+    with tabs[10]:
+        render_glossario()
 
 
 def main() -> None:
