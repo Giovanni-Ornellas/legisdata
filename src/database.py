@@ -1,5 +1,6 @@
 import os
 import tempfile
+import textwrap
 from typing import Any
 
 import mysql.connector
@@ -73,6 +74,7 @@ def build_connection_kwargs(config: dict[str, Any], autocommit: bool = True) -> 
         kwargs["ssl_disabled"] = False
 
     if ssl_ca_content:
+        ssl_ca_content = textwrap.dedent(ssl_ca_content).strip() + "\n"
         cert_file = tempfile.NamedTemporaryFile(
             mode="w",
             encoding="utf-8",
