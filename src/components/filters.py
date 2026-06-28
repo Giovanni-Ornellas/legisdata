@@ -27,19 +27,21 @@ def render_filter_feedback(total_rows: int, filtered_rows: int, termo: str, term
 
 def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("Filtros")
+    st.sidebar.caption("Refine o recorte sem sair da página atual.")
 
     total_rows = len(df)
     term_matches = total_rows
     termo = st.sidebar.text_input(
-        "Texto da ementa ou palavra-chave",
+        "Buscar assunto",
+        placeholder="Ex.: saúde, educação, escala 6x1",
         help="Busca no texto da ementa e também em autores, partidos, temas e situação.",
     )
-    anos = st.sidebar.multiselect("Ano da proposição", sorted(df["ano"].dropna().unique(), reverse=True))
-    tipos = st.sidebar.multiselect("Tipo de proposição", sorted(df["Sigla_tipo"].dropna().unique()))
-    temas = st.sidebar.multiselect("Tema tratado", split_values(df["temas"]))
-    partidos = st.sidebar.multiselect("Partido do autor", split_values(df["partidos"]))
-    deputados = st.sidebar.multiselect("Deputado autor", split_values(df["autores"]))
-    situacoes = st.sidebar.multiselect("Situação", sorted(df["descricao_situacao"].dropna().unique()))
+    anos = st.sidebar.multiselect("Ano", sorted(df["ano"].dropna().unique(), reverse=True), placeholder="Todos os anos")
+    tipos = st.sidebar.multiselect("Tipo", sorted(df["Sigla_tipo"].dropna().unique()), placeholder="Todos os tipos")
+    temas = st.sidebar.multiselect("Tema", split_values(df["temas"]), placeholder="Todos os temas")
+    partidos = st.sidebar.multiselect("Partido", split_values(df["partidos"]), placeholder="Todos os partidos")
+    deputados = st.sidebar.multiselect("Deputado", split_values(df["autores"]), placeholder="Todos os deputados")
+    situacoes = st.sidebar.multiselect("Situação", sorted(df["descricao_situacao"].dropna().unique()), placeholder="Todas")
 
     min_date = df["data_apresentacao"].min()
     max_date = df["data_apresentacao"].max()

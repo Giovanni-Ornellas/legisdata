@@ -2,39 +2,45 @@ import pandas as pd
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.filters import split_values
 from src.components.help_text import render_help_box
 from src.components.tables import show_dataframe
-from src.queries import BASE_PROPOSICOES_QUERY, COUNT_QUERY
 from src.services import get_counts
-from src.views.ux_helpers import show_sql
 
 
-def render_visao_geral_ux(config_items: tuple[tuple[str, str], ...], base_df: pd.DataFrame) -> None:
+def render_visao_geral_ux(
+    config_items: tuple[tuple[str, str], ...],
+    base_df: pd.DataFrame,
+    filtered_df: pd.DataFrame,
+) -> None:
     st.header("Visão Geral")
     st.write(
-        "Comece por aqui para entender o tamanho da base, os tipos de proposição carregados "
-        "e a distribuição inicial dos dados legislativos."
+        "Um panorama rápido do que está acontecendo no recorte selecionado. Use os filtros laterais "
+        "para acompanhar anos, temas, partidos ou palavras-chave específicas."
     )
 
     counts = get_counts(config_items)
     values = dict(zip(counts["metrica"], counts["total"])) if not counts.empty else {}
-    cols = st.columns(6)
-    for col, label in zip(cols, ["Proposições", "Deputados", "Partidos", "Temas", "Tramitações", "Autorias"]):
-        col.metric(label, int(values.get(label, 0)))
+    cols = st.columns(5)
+    cols[0].metric("Proposições no recorte", filtered_df["proposicao_id"].nunique())
+    cols[1].metric("Total na base", int(values.get("Proposições", 0)))
+    cols[2].metric("Temas no recorte", len(split_values(filtered_df["temas"])))
+    cols[3].metric("Partidos no recorte", len(split_values(filtered_df["partidos"])))
+    cols[4].metric("Tramitações no recorte", int(filtered_df["quantidade_tramitacoes"].sum()))
 
     render_help_box(
-        "O que esta página responde?",
-        "Ela mostra o volume geral do banco e ajuda a identificar quais tipos e situações aparecem com mais frequência.",
+        "Leitura rápida",
+        "Os cartões e gráficos abaixo mudam conforme os filtros laterais. Eles ajudam a perceber volume, temas e situações sem precisar olhar diretamente para as tabelas.",
     )
 
-    if base_df.empty:
-        st.info("O banco conectou, mas não há proposições carregadas.")
+    if filtered_df.empty:
+        st.info("Nenhuma proposição encontrada com os filtros atuais. Remova algum filtro para ampliar a busca.")
         return
 
     col1, col2 = st.columns(2)
     with col1:
         by_type = (
-            base_df.groupby("Sigla_tipo", as_index=False)
+            filtered_df.groupby("Sigla_tipo", as_index=False)
             .agg(quantidade=("proposicao_id", "nunique"))
             .sort_values("quantidade", ascending=False)
         )
@@ -42,7 +48,7 @@ def render_visao_geral_ux(config_items: tuple[tuple[str, str], ...], base_df: pd
 
     with col2:
         by_status = (
-            base_df.fillna({"descricao_situacao": "Sem situação"})
+            filtered_df.fillna({"descricao_situacao": "Sem situação"})
             .groupby("descricao_situacao", as_index=False)
             .agg(quantidade=("proposicao_id", "nunique"))
             .sort_values("quantidade", ascending=False)
@@ -51,7 +57,7 @@ def render_visao_geral_ux(config_items: tuple[tuple[str, str], ...], base_df: pd
 
     st.markdown("### Amostra da base")
     show_dataframe(
-        base_df[
+        filtered_df[
             [
                 "proposicao",
                 "data_apresentacao",
@@ -64,6 +70,3 @@ def render_visao_geral_ux(config_items: tuple[tuple[str, str], ...], base_df: pd
             ]
         ].head(12)
     )
-
-    show_sql(COUNT_QUERY, "Ver consulta SQL das métricas")
-    show_sql(BASE_PROPOSICOES_QUERY, "Ver consulta SQL da base de proposições")

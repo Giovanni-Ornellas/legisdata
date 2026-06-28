@@ -2,9 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from src.components.tables import show_dataframe
-from src.queries import QUALIDADE_DADOS_QUERY
 from src.services import get_qualidade_dados
-from src.views.ux_helpers import show_sql
 
 
 def _percent(value: float) -> str:
@@ -43,7 +41,6 @@ def render_metodologia_ux(
     qualidade = get_qualidade_dados(config_items)
     if qualidade.empty:
         st.info("Não foi possível calcular os indicadores de qualidade.")
-        show_sql(QUALIDADE_DADOS_QUERY)
         return
 
     row = qualidade.iloc[0]
@@ -81,5 +78,3 @@ def render_metodologia_ux(
         "- A aplicação não consulta a API em tempo real; ela usa o banco já populado.\n"
         "- Os gráficos não representam interpretação jurídica ou política automática."
     )
-
-    show_sql(QUALIDADE_DADOS_QUERY, "Ver consulta SQL dos indicadores de qualidade")

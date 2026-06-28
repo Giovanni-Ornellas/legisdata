@@ -3,14 +3,7 @@ import streamlit as st
 
 from src.components.charts import plot_bar
 from src.components.tables import show_dataframe
-from src.queries import (
-    BASE_PROPOSICOES_QUERY,
-    ORGAOS_RANKING_QUERY,
-    TEMAS_ACIMA_MEDIA_QUERY,
-    TRAMITACOES_ACIMA_MEDIA_QUERY,
-)
 from src.services import get_ranking_orgaos, get_temas_acima_media, get_tramitacoes_acima_media
-from src.views.ux_helpers import show_sql
 
 
 def _temas_frequentes(base_df: pd.DataFrame) -> pd.DataFrame:
@@ -33,17 +26,17 @@ def _temas_frequentes(base_df: pd.DataFrame) -> pd.DataFrame:
 
 def render_temas_tramitacoes_ux(
     config_items: tuple[tuple[str, str], ...],
-    base_df: pd.DataFrame,
+    filtered_df: pd.DataFrame,
 ) -> None:
     st.header("Temas e Tramitações")
     st.write(
-        "Esta página ajuda a entender quais assuntos aparecem mais e quais movimentações "
-        "são mais comuns no histórico legislativo carregado."
+        "Veja quais assuntos, órgãos e situações aparecem com mais força no recorte selecionado. "
+        "Use os filtros laterais para acompanhar um tema, partido ou período específico."
     )
 
     top_n = st.slider("Quantidade exibida nos rankings", 5, 30, 10, 5)
 
-    temas_freq = _temas_frequentes(base_df)
+    temas_freq = _temas_frequentes(filtered_df)
     orgaos = get_ranking_orgaos(config_items)
     temas_acima_media = get_temas_acima_media(config_items)
     tramitacoes_acima_media = get_tramitacoes_acima_media(config_items)
@@ -60,7 +53,7 @@ def render_temas_tramitacoes_ux(
 
     st.markdown("### Situações mais comuns")
     situacoes = (
-        base_df.fillna({"descricao_situacao": "Sem situação"})
+        filtered_df.fillna({"descricao_situacao": "Sem situação"})
         .groupby("descricao_situacao", as_index=False)
         .agg(quantidade=("proposicao_id", "nunique"))
         .sort_values("quantidade", ascending=False)
@@ -69,20 +62,15 @@ def render_temas_tramitacoes_ux(
 
     tab1, tab2, tab3 = st.tabs(["Temas acima da média", "Tramitações acima da média", "Órgãos"])
     with tab1:
-        st.write("Temas cuja quantidade de proposições é superior à média dos demais temas.")
+        st.write("Temas cuja quantidade de proposições é superior à média na base completa.")
         show_dataframe(temas_acima_media.head(50))
-        show_sql(TEMAS_ACIMA_MEDIA_QUERY)
     with tab2:
-        st.write("Proposições com número de tramitações superior à média da base.")
+        st.write("Proposições com número de tramitações superior à média na base completa.")
         show_dataframe(
             tramitacoes_acima_media[
                 ["Sigla_tipo", "numero", "ano", "ementa", "quantidade_tramitacoes"]
             ].head(50)
         )
-        show_sql(TRAMITACOES_ACIMA_MEDIA_QUERY)
     with tab3:
         st.write("Ranking dos órgãos por quantidade de tramitações e proposições associadas.")
         show_dataframe(orgaos[["sigla", "nome", "tipo_orgao", "quantidade_tramitacoes", "quantidade_proposicoes"]].head(50))
-        show_sql(ORGAOS_RANKING_QUERY)
-
-    show_sql(BASE_PROPOSICOES_QUERY, "Ver consulta SQL da base usada nos gráficos")
