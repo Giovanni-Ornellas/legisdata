@@ -6,13 +6,13 @@ from src.components.tables import DISPLAY_COLUMN_LABELS
 
 
 SPECTRUM_COLORS = {
-    "Não atribuído": "#B8B8B8",
-    "Esquerda": "#C43C39",
-    "Centro-Esquerda": "#E68A70",
-    "Centro": "#8C7AA9",
-    "Centro-Direita": "#5F8CCB",
-    "Direita": "#2457A6",
-    "Visão Independente": "#6D6D6D",
+    "Não atribuído": "#A7ADB7",
+    "Esquerda": "#B94A48",
+    "Centro-Esquerda": "#D88B72",
+    "Centro": "#8F7BAE",
+    "Centro-Direita": "#6C92C7",
+    "Direita": "#315F9E",
+    "Visão Independente": "#747474",
 }
 
 
@@ -69,15 +69,30 @@ def plot_theme_coverage(com_tema: int, sem_tema: int) -> None:
 
 
 def plot_spectrum_treemap(df: pd.DataFrame) -> None:
+    chart_df = df.copy()
+    chart_df["texto"] = chart_df["partido"] + "<br>" + chart_df["quantidade"].astype(str)
     fig = px.treemap(
-        df,
-        path=[px.Constant("Todos os espectros"), "espectro", "partido"],
+        chart_df,
+        path=["espectro", "partido"],
         values="quantidade",
         color="espectro",
         color_discrete_map=SPECTRUM_COLORS,
         labels=DISPLAY_COLUMN_LABELS,
     )
-    fig.update_traces(textinfo="label+value")
+    fig.update_traces(
+        texttemplate="<b>%{label}</b><br>%{value}",
+        hovertemplate="<b>%{label}</b><br>Quantidade: %{value}<br>Espectro: %{parent}<extra></extra>",
+        marker=dict(line=dict(color="rgba(255,255,255,0.45)", width=1)),
+        tiling=dict(pad=3),
+        textfont=dict(size=13),
+    )
+    fig.update_layout(
+        height=430,
+        margin=dict(l=0, r=0, t=12, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        uniformtext=dict(minsize=10, mode="hide"),
+    )
     st.plotly_chart(fig, width="stretch")
 
 
@@ -85,12 +100,26 @@ def plot_spectrum_bar(df: pd.DataFrame) -> None:
     grouped = df.groupby("espectro", as_index=False)["quantidade"].sum().sort_values("quantidade", ascending=False)
     fig = px.bar(
         grouped,
-        x="espectro",
-        y="quantidade",
+        x="quantidade",
+        y="espectro",
+        orientation="h",
         color="espectro",
         color_discrete_map=SPECTRUM_COLORS,
         text="quantidade",
         title="Proposições por espectro no recorte filtrado",
         labels=DISPLAY_COLUMN_LABELS,
+    )
+    fig.update_traces(
+        textposition="outside",
+        hovertemplate="<b>%{y}</b><br>Quantidade: %{x}<extra></extra>",
+        marker_line_width=0,
+    )
+    fig.update_layout(
+        height=380,
+        margin=dict(l=10, r=35, t=50, b=10),
+        showlegend=False,
+        yaxis={"categoryorder": "total ascending"},
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     st.plotly_chart(fig, width="stretch")
