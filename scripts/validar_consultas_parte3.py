@@ -129,7 +129,7 @@ def _load_streamlit_secrets() -> dict[str, Any]:
 
 def get_config() -> dict[str, Any]:
     env_config = get_config_from_env()
-    if os.path.exists(BASE_DIR / ".env"):
+    if os.path.exists(BASE_DIR / ".env") or os.getenv("MYSQL_HOST"):
         return env_config
     secrets_config = _load_streamlit_secrets()
     return secrets_config or env_config

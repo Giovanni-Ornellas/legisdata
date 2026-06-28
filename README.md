@@ -129,6 +129,15 @@ MAX_PROPOSICOES=50
 ANO_PROPOSICOES=2025
 ```
 
+Para carregar mais de um ano na mesma execução, use:
+
+```env
+ANOS_PROPOSICOES=2025,2026
+MAX_PROPOSICOES=250
+```
+
+Nesse caso, `MAX_PROPOSICOES` representa a quantidade máxima de novas proposições buscadas para cada ano informado. O script consulta os IDs já existentes no banco e evita recarregar proposições já inseridas.
+
 Execute a população:
 
 ```bash
@@ -288,14 +297,20 @@ ssl_verify_cert = true
 ssl_verify_identity = false
 ```
 
-Para levar os dados locais para o Aiven, primeiro exporte o banco local:
+Para levar os dados locais para o Aiven, o caminho recomendado é usar o script incremental de sincronização. Ele lê o banco local pelas variáveis do `.env` ou pelos valores padrão locais, lê o destino em `.streamlit/secrets.toml` e usa `ON DUPLICATE KEY UPDATE`, sem apagar dados:
+
+```bash
+python scripts/sincronizar_aiven.py
+```
+
+Também é possível exportar e importar manualmente com `mysqldump`, se o grupo preferir gerar um arquivo SQL de transporte:
 
 ```bash
 mysqldump --single-transaction --no-tablespaces \
   -h 127.0.0.1 -P 3307 -u bdi -p trabalho_final > dump_trabalho_final.sql
 ```
 
-Depois importe no banco `defaultdb` do Aiven:
+Depois, importe no banco `defaultdb` do Aiven:
 
 ```bash
 mysql --ssl-mode=REQUIRED \

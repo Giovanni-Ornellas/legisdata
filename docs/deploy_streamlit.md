@@ -39,6 +39,16 @@ Após alterar os Secrets:
 2. Use `Reboot app`.
 3. Se necessário, use `Clear cache and reboot`.
 
+## Sincronizar dados com o Aiven
+
+Depois de popular e validar o banco local, sincronize os dados para o Aiven com:
+
+```bash
+python scripts/sincronizar_aiven.py
+```
+
+O script lê a origem local pelas variáveis do `.env` ou pelos valores padrão do projeto e usa o destino configurado em `.streamlit/secrets.toml`. A sincronização é incremental: usa `ON DUPLICATE KEY UPDATE` e não apaga registros.
+
 ## Erros comuns
 
 - **Access denied for user**: usuário ou senha do Aiven estão incorretos.

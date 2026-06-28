@@ -213,6 +213,14 @@ class Banco:
         finally:
             cursor.close()
 
+    def fetch_column(self, sql: str, params: tuple[Any, ...]) -> list[Any]:
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute(sql, params)
+            return [row[0] for row in cursor.fetchall()]
+        finally:
+            cursor.close()
+
     def commit(self) -> None:
         self.conn.commit()
 
@@ -637,9 +645,10 @@ class PopularBanco:
         self,
         ano: int,
         max_proposicoes: int,
+        ids_ignorados: set[int] | None = None,
     ) -> list[int]:
         proposicao_ids: list[int] = []
-        seen: set[int] = set()
+        seen: set[int] = set(ids_ignorados or set())
 
         logger.info("Buscando proposicoes por idDeputadoAutor para priorizar Participa...")
         for dep_index, dep_id in enumerate(self.deputado_ids, start=1):
@@ -698,11 +707,25 @@ class PopularBanco:
                 return proposicao_ids
         return proposicao_ids
 
+    def ids_proposicoes_existentes(self, ano: int) -> set[int]:
+        ids = self.banco.fetch_column(
+            "SELECT ID FROM Proposicao WHERE ano = %s",
+            (ano,),
+        )
+        return {int(prop_id) for prop_id in ids}
+
     def popular_proposicoes(self, ano: int, max_proposicoes: int) -> None:
-        logger.info("Populando Proposicao e relacionamentos: ano=%s limite=%s.", ano, max_proposicoes)
+        ids_existentes = self.ids_proposicoes_existentes(ano)
+        logger.info(
+            "Populando Proposicao e relacionamentos: ano=%s limite_novas=%s existentes=%s.",
+            ano,
+            max_proposicoes,
+            len(ids_existentes),
+        )
         proposicao_ids = self.coletar_ids_proposicoes_com_autoria_de_deputados(
             ano,
             max_proposicoes,
+            ids_existentes,
         )
         if len(proposicao_ids) < max_proposicoes:
             faltantes = max_proposicoes - len(proposicao_ids)
@@ -715,7 +738,7 @@ class PopularBanco:
                 self.coletar_ids_proposicoes_gerais(
                     ano,
                     faltantes,
-                    set(proposicao_ids),
+                    ids_existentes.union(proposicao_ids),
                 )
             )
 
@@ -791,7 +814,11 @@ def main() -> int:
     load_env_file()
 
     api_base_url = os.getenv("CAMARA_API_BASE_URL", DEFAULT_API_BASE_URL)
-    ano = env_int("ANO_PROPOSICOES", 2025)
+    anos_env = os.getenv("ANOS_PROPOSICOES")
+    if anos_env:
+        anos = [int(item.strip()) for item in anos_env.split(",") if item.strip()]
+    else:
+        anos = [env_int("ANO_PROPOSICOES", 2025)]
     max_proposicoes = env_int("MAX_PROPOSICOES", 500)
 
     logger.info(
@@ -808,7 +835,8 @@ def main() -> int:
         popular.popular_orgaos()
         popular.popular_temas()
         popular.popular_deputados()
-        popular.popular_proposicoes(ano=ano, max_proposicoes=max_proposicoes)
+        for ano in anos:
+            popular.popular_proposicoes(ano=ano, max_proposicoes=max_proposicoes)
         popular.print_stats()
     finally:
         banco.close()
