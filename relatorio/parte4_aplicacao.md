@@ -20,11 +20,16 @@ Essa organização segue o fluxo `View -> Service -> Query -> Database`, facilit
 
 ## Funcionalidades implementadas
 
-A aplicação apresenta nove abas principais:
+A aplicação apresenta abas de exploração, validação e apoio didático:
 
 - Visão Geral: mostra métricas gerais do banco, como totais de proposições, deputados, partidos, temas, tramitações e relações de autoria.
+- Qualidade dos Dados: mostra cobertura temática, autoria, tramitação e lacunas da carga.
+- Metodologia dos Dados: explica fonte, recorte, tabelas populadas e limitações dos dados.
+- Entenda uma Proposição: apresenta resumo didático e linha do tempo de uma proposição selecionada.
 - Ranking de Partidos: apresenta os partidos com maior quantidade de proposições associadas a seus deputados.
 - Ranking de Deputados: apresenta os deputados com maior número de proposições assinadas.
+- Deputado Detalhado: permite selecionar um deputado e visualizar dados básicos, proposições e temas frequentes.
+- Órgãos: lista órgãos cadastrados, tipos de órgão e tramitações associadas.
 - Proposições e Temas: lista proposições e seus temas, preservando proposições sem classificação temática.
 - Última Tramitação: mostra a última tramitação conhecida de cada proposição.
 - Temas Acima da Média: destaca temas com quantidade de proposições acima da média.
@@ -55,11 +60,19 @@ As principais tabelas também possuem botão de exportação em CSV, o que permi
 
 ## Funcionalidades didáticas
 
-A aplicação também foi ampliada para facilitar o uso por pessoas sem familiaridade prévia com o processo legislativo. A página inicial apresenta o objetivo do sistema e orienta a navegação. A aba "Entenda uma Proposição" resume uma proposição específica, mostrando tipo, número, ano, ementa, autores, partidos, temas, situação e linha do tempo das tramitações registradas.
+A aplicação também foi ampliada para facilitar o uso por pessoas sem familiaridade prévia com o processo legislativo. A página inicial apresenta o objetivo do sistema e orienta a navegação. A aba "Entenda uma Proposição" resume uma proposição específica, mostrando tipo, número, ano, ementa, autores, partidos, temas, situação, órgãos envolvidos e linha do tempo das tramitações registradas.
 
 A aba "Glossário" reúne explicações curtas para termos recorrentes nos dados, como proposição, projeto de lei, ementa, autor, órgão, tramitação, despacho, situação, plenário e comissão. As páginas principais também possuem cards explicativos e descrições das consultas da Parte 3, indicando o que cada visualização mostra, por que ela é útil e como interpretar os resultados.
 
 Todas as explicações são estáticas e baseadas nos campos disponíveis no banco. A aplicação não consulta APIs externas em tempo de execução e não produz conclusões jurídicas ou políticas.
+
+## Validação das consultas
+
+O projeto inclui o script `scripts/validar_consultas_parte3.py`, que executa as seis consultas principais da Parte 3, informa se cada consulta foi executada com sucesso e mostra a quantidade de linhas retornadas. O script valida que as consultas são apenas `SELECT` ou `WITH`, sem modificar o banco.
+
+```bash
+python scripts/validar_consultas_parte3.py
+```
 
 ## Como executar
 

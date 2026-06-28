@@ -215,3 +215,165 @@ ORDER BY
     tr.data_hora DESC,
     tr.sequencia DESC;
 """
+
+QUALIDADE_DADOS_QUERY = """
+SELECT
+    (SELECT COUNT(*) FROM Proposicao) AS total_proposicoes,
+    (
+        SELECT COUNT(*)
+        FROM Proposicao pr
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Classificacao c
+            WHERE c.fk_Proposicao_ID = pr.ID
+        )
+    ) AS proposicoes_sem_tema,
+    (
+        SELECT COUNT(*)
+        FROM Proposicao pr
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Tramitacao tr
+            WHERE tr.fk_Proposicao_ID = pr.ID
+        )
+    ) AS proposicoes_sem_tramitacao,
+    (
+        SELECT COUNT(*)
+        FROM Proposicao pr
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM Participa par
+            WHERE par.fk_Proposicao_ID = pr.ID
+        )
+    ) AS proposicoes_sem_autores,
+    (SELECT COUNT(*) FROM Participa) AS total_participa,
+    (SELECT COUNT(*) FROM Classificacao) AS total_classificacao;
+"""
+
+ORGAOS_QUERY = """
+SELECT
+    ID AS orgao_id,
+    sigla,
+    nome,
+    tipo_orgao
+FROM Orgao
+ORDER BY
+    tipo_orgao,
+    sigla,
+    nome;
+"""
+
+ORGAOS_RANKING_QUERY = """
+SELECT
+    o.ID AS orgao_id,
+    o.sigla,
+    o.nome,
+    o.tipo_orgao,
+    COUNT(tr.sequencia) AS quantidade_tramitacoes,
+    COUNT(DISTINCT tr.fk_Proposicao_ID) AS quantidade_proposicoes
+FROM Orgao o
+LEFT JOIN Tramitacao tr
+    ON tr.fk_Orgao_ID = o.ID
+GROUP BY
+    o.ID,
+    o.sigla,
+    o.nome,
+    o.tipo_orgao
+ORDER BY
+    quantidade_tramitacoes DESC,
+    sigla ASC;
+"""
+
+ORGAO_PROPOSICOES_QUERY = """
+SELECT
+    pr.ID AS proposicao_id,
+    CONCAT(pr.Sigla_tipo, ' ', pr.numero, '/', pr.ano) AS proposicao,
+    pr.ementa,
+    pr.data_apresentacao,
+    tr.descricao_situacao,
+    COUNT(tr.sequencia) AS quantidade_tramitacoes,
+    MAX(tr.data_hora) AS ultima_tramitacao_no_orgao
+FROM Tramitacao tr
+JOIN Proposicao pr
+    ON pr.ID = tr.fk_Proposicao_ID
+WHERE tr.fk_Orgao_ID = %s
+GROUP BY
+    pr.ID,
+    pr.Sigla_tipo,
+    pr.numero,
+    pr.ano,
+    pr.ementa,
+    pr.data_apresentacao,
+    tr.descricao_situacao
+ORDER BY
+    ultima_tramitacao_no_orgao DESC,
+    quantidade_tramitacoes DESC;
+"""
+
+DEPUTADOS_QUERY = """
+SELECT
+    d.ID AS deputado_id,
+    d.nome,
+    d.sigla_uf,
+    d.email,
+    d.url_foto,
+    p.sigla AS partido,
+    p.nome AS nome_partido
+FROM Deputado d
+LEFT JOIN Partido p
+    ON p.ID = d.fk_Partido_ID
+ORDER BY
+    d.nome;
+"""
+
+DEPUTADO_PROPOSICOES_QUERY = """
+SELECT
+    pr.ID AS proposicao_id,
+    CONCAT(pr.Sigla_tipo, ' ', pr.numero, '/', pr.ano) AS proposicao,
+    pr.ementa,
+    pr.data_apresentacao,
+    pr.descricao_tipo,
+    par.ordem_assinatura,
+    par.proponente,
+    COALESCE(GROUP_CONCAT(DISTINCT t.nome ORDER BY t.nome SEPARATOR ', '), 'Sem tema associado') AS temas
+FROM Participa par
+JOIN Proposicao pr
+    ON pr.ID = par.fk_Proposicao_ID
+LEFT JOIN Classificacao c
+    ON c.fk_Proposicao_ID = pr.ID
+LEFT JOIN Tema t
+    ON t.Cod = c.fk_Tema_Cod
+WHERE par.fk_Deputado_ID = %s
+GROUP BY
+    pr.ID,
+    pr.Sigla_tipo,
+    pr.numero,
+    pr.ano,
+    pr.ementa,
+    pr.data_apresentacao,
+    pr.descricao_tipo,
+    par.ordem_assinatura,
+    par.proponente
+ORDER BY
+    pr.data_apresentacao DESC,
+    pr.ID DESC;
+"""
+
+DEPUTADO_TEMAS_QUERY = """
+SELECT
+    t.nome AS tema,
+    COUNT(DISTINCT pr.ID) AS quantidade_proposicoes
+FROM Participa par
+JOIN Proposicao pr
+    ON pr.ID = par.fk_Proposicao_ID
+JOIN Classificacao c
+    ON c.fk_Proposicao_ID = pr.ID
+JOIN Tema t
+    ON t.Cod = c.fk_Tema_Cod
+WHERE par.fk_Deputado_ID = %s
+GROUP BY
+    t.nome
+ORDER BY
+    quantidade_proposicoes DESC,
+    tema ASC;
+"""

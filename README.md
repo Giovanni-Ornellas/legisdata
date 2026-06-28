@@ -158,6 +158,14 @@ python scripts/validar_banco.py
 
 Esse script imprime `COUNT(*)` e `SELECT * LIMIT 10` para todas as tabelas. A tabela `Participa` deve ser conferida explicitamente, pois ela representa a autoria entre deputados e proposições e é essencial para as consultas da Parte 3.
 
+Para validar as consultas SQL da Parte 3, execute:
+
+```bash
+python scripts/validar_consultas_parte3.py
+```
+
+Esse script executa as seis consultas principais, informa se cada uma rodou com sucesso e mostra a quantidade de linhas retornadas. Ele executa apenas consultas `SELECT` ou `WITH`.
+
 ## Aplicação Streamlit
 
 A Parte 4 do trabalho usa Streamlit para visualizar os dados carregados no MySQL. A aplicação é somente de leitura e reutiliza as consultas da Parte 3.
@@ -193,9 +201,13 @@ password = "bdi"
 As abas implementadas são:
 
 - Visão Geral
+- Qualidade dos Dados
+- Metodologia dos Dados
 - Entenda uma Proposição
 - Ranking de Partidos
 - Ranking de Deputados
+- Deputado Detalhado
+- Órgãos
 - Proposições e Temas
 - Última Tramitação
 - Temas Acima da Média
@@ -209,8 +221,11 @@ A aplicação também possui filtros globais na barra lateral para busca textual
 ### Funcionalidades didáticas
 
 - Página inicial com orientação sobre o objetivo da aplicação.
+- Página de qualidade dos dados com cobertura temática, autoria e tramitação.
+- Página de metodologia com fonte, recorte, tabelas e limitações da carga.
 - Glossário legislativo com termos como proposição, ementa, tramitação, despacho, comissão e plenário.
 - Página "Entenda uma Proposição", com resumo, autores, partidos, temas, situação e linha do tempo de tramitação.
+- Páginas de órgãos e deputado detalhado para melhor aproveitamento das tabelas `Orgao`, `Tramitacao`, `Deputado` e `Participa`.
 - Explicações curtas para as consultas principais da Parte 3.
 - Cards explicativos nas páginas de proposições, temas, tramitações, partidos e deputados.
 

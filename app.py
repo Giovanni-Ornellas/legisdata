@@ -3,13 +3,17 @@ from mysql.connector import Error as MySQLError
 
 from src.components.filters import apply_sidebar_filters
 from src.services import config_to_cache_key, get_base_proposicoes, get_connection, get_mysql_config
+from src.views.deputado_detalhado import render_deputado_detalhado
 from src.views.deputados import render_deputados
 from src.views.entenda_proposicao import render_entenda_proposicao
 from src.views.espectro import render_espectro
 from src.views.glossario import render_glossario
 from src.views.home import render_home
+from src.views.metodologia_dados import render_metodologia_dados
+from src.views.orgaos import render_orgaos
 from src.views.partidos import render_partidos
 from src.views.proposicoes import render_explorar, render_proposicoes_temas
+from src.views.qualidade_dados import render_qualidade_dados
 from src.views.temas import render_temas_acima_media
 from src.views.tramitacoes import render_tramitacoes_acima_media, render_ultima_tramitacao
 
@@ -55,9 +59,13 @@ def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     tabs = st.tabs(
         [
             "Visão Geral",
+            "Qualidade dos Dados",
+            "Metodologia dos Dados",
             "Entenda uma Proposição",
             "Ranking de Partidos",
             "Ranking de Deputados",
+            "Deputado Detalhado",
+            "Órgãos",
             "Proposições e Temas",
             "Última Tramitação",
             "Temas Acima da Média",
@@ -71,24 +79,32 @@ def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     with tabs[0]:
         render_home(config_items, base_df, filtered_df)
     with tabs[1]:
-        render_entenda_proposicao(config_items, filtered_df)
+        render_qualidade_dados(config_items)
     with tabs[2]:
-        render_partidos(config_items, filtered_df)
+        render_metodologia_dados(base_df)
     with tabs[3]:
-        render_deputados(config_items)
+        render_entenda_proposicao(config_items, filtered_df)
     with tabs[4]:
-        render_proposicoes_temas(filtered_df)
+        render_partidos(config_items, filtered_df)
     with tabs[5]:
-        render_ultima_tramitacao(filtered_df)
+        render_deputados(config_items)
     with tabs[6]:
-        render_temas_acima_media(config_items, filtered_df)
+        render_deputado_detalhado(config_items)
     with tabs[7]:
-        render_tramitacoes_acima_media(config_items)
+        render_orgaos(config_items)
     with tabs[8]:
-        render_explorar(filtered_df)
+        render_proposicoes_temas(filtered_df)
     with tabs[9]:
-        render_espectro(filtered_df)
+        render_ultima_tramitacao(filtered_df)
     with tabs[10]:
+        render_temas_acima_media(config_items, filtered_df)
+    with tabs[11]:
+        render_tramitacoes_acima_media(config_items)
+    with tabs[12]:
+        render_explorar(filtered_df)
+    with tabs[13]:
+        render_espectro(filtered_df)
+    with tabs[14]:
         render_glossario()
 
 

@@ -33,6 +33,19 @@ def _select_proposicao(filtered_df: pd.DataFrame) -> pd.Series | None:
         return None
 
     options = filtered_df.sort_values(["data_apresentacao", "proposicao_id"], ascending=[False, False])
+    busca = st.text_input("Buscar por ementa, número ou tipo")
+    if busca:
+        termo = busca.lower()
+        options = options[
+            options["ementa"].fillna("").str.lower().str.contains(termo, regex=False)
+            | options["proposicao"].fillna("").str.lower().str.contains(termo, regex=False)
+            | options["Sigla_tipo"].fillna("").str.lower().str.contains(termo, regex=False)
+        ]
+
+    if options.empty:
+        st.info("Nenhuma proposição encontrada com a busca atual.")
+        return None
+
     labels = {
         row.proposicao_id: f"{row.proposicao} · {str(row.ementa)[:120]}"
         for row in options.itertuples()
@@ -88,4 +101,26 @@ def render_entenda_proposicao(
 
     st.markdown("### Linha do tempo da tramitação")
     tramitacoes = get_tramitacoes_proposicao(config_items, int(selected["proposicao_id"]))
+    if not tramitacoes.empty:
+        timeline_df = tramitacoes.copy()
+        timeline_df["data_hora"] = pd.to_datetime(timeline_df["data_hora"], errors="coerce")
+        orgaos = timeline_df["sigla_orgao"].dropna().nunique()
+        primeira = timeline_df.sort_values(["data_hora", "sequencia"], ascending=[True, True]).iloc[0]
+        ultima = timeline_df.sort_values(["data_hora", "sequencia"], ascending=[False, False]).iloc[0]
+        st.info(
+            f"Esta proposição possui registros de tramitação em **{orgaos}** órgão(s) diferente(s). "
+            f"A primeira movimentação registrada ocorreu em **{_format_date(primeira['data_hora'])}** "
+            f"e a última em **{_format_date(ultima['data_hora'])}**."
+        )
+
+        st.markdown("#### Tramitações por órgão")
+        orgao_counts = (
+            timeline_df.fillna({"sigla_orgao": "Órgão não informado"})
+            .groupby("sigla_orgao", as_index=False)
+            .size()
+            .rename(columns={"size": "quantidade"})
+            .sort_values("quantidade", ascending=False)
+        )
+        show_dataframe(orgao_counts)
+
     render_timeline(tramitacoes)

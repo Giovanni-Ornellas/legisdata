@@ -10,6 +10,26 @@ GLOSSARIO = [
         "exemplo": "Um PL pode propor uma nova regra sobre saúde, educação ou segurança.",
     },
     {
+        "termo": "PL",
+        "explicacao": "Sigla usada para Projeto de Lei.",
+        "exemplo": "PL 123/2025 identifica um projeto de lei apresentado em 2025.",
+    },
+    {
+        "termo": "REQ",
+        "explicacao": "Sigla usada para requerimento, um pedido formal registrado na Câmara.",
+        "exemplo": "Um REQ pode pedir sessão solene, urgência ou outro encaminhamento.",
+    },
+    {
+        "termo": "PEC",
+        "explicacao": "Sigla usada para Proposta de Emenda à Constituição.",
+        "exemplo": "Uma PEC propõe alterar texto constitucional.",
+    },
+    {
+        "termo": "INC",
+        "explicacao": "Sigla usada para indicação, uma sugestão encaminhada a outro órgão ou autoridade.",
+        "exemplo": "Uma INC pode sugerir uma providência ao Poder Executivo.",
+    },
+    {
         "termo": "Ementa",
         "explicacao": "Resumo oficial do conteúdo da proposição.",
         "exemplo": "A ementa ajuda a entender rapidamente qual assunto está sendo tratado.",

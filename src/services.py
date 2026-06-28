@@ -5,6 +5,13 @@ from src.database import connect_mysql, get_config_from_env, run_select_query
 from src.queries import (
     BASE_PROPOSICOES_QUERY,
     COUNT_QUERY,
+    DEPUTADOS_QUERY,
+    DEPUTADO_PROPOSICOES_QUERY,
+    DEPUTADO_TEMAS_QUERY,
+    ORGAOS_QUERY,
+    ORGAOS_RANKING_QUERY,
+    ORGAO_PROPOSICOES_QUERY,
+    QUALIDADE_DADOS_QUERY,
     RANKING_DEPUTADOS_QUERY,
     RANKING_PARTIDOS_QUERY,
     TEMAS_ACIMA_MEDIA_QUERY,
@@ -78,3 +85,46 @@ def get_tramitacoes_acima_media(config_items: tuple[tuple[str, str], ...]) -> pd
 
 def get_tramitacoes_proposicao(config_items: tuple[tuple[str, str], ...], proposicao_id: int) -> pd.DataFrame:
     return load_data_with_params(TRAMITACOES_PROPOSICAO_QUERY, (int(proposicao_id),), config_items)
+
+
+def get_qualidade_dados(config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
+    df = load_data(QUALIDADE_DADOS_QUERY, config_items)
+    if df.empty:
+        return df
+
+    df = df.copy()
+    total = int(df.loc[0, "total_proposicoes"] or 0)
+    if total == 0:
+        df["cobertura_tematica_percentual"] = 0.0
+        df["cobertura_autoria_percentual"] = 0.0
+        df["cobertura_tramitacao_percentual"] = 0.0
+        return df
+
+    df["cobertura_tematica_percentual"] = 100 * (total - df["proposicoes_sem_tema"]) / total
+    df["cobertura_autoria_percentual"] = 100 * (total - df["proposicoes_sem_autores"]) / total
+    df["cobertura_tramitacao_percentual"] = 100 * (total - df["proposicoes_sem_tramitacao"]) / total
+    return df
+
+
+def get_orgaos(config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
+    return load_data(ORGAOS_QUERY, config_items)
+
+
+def get_ranking_orgaos(config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
+    return load_data(ORGAOS_RANKING_QUERY, config_items)
+
+
+def get_proposicoes_por_orgao(config_items: tuple[tuple[str, str], ...], orgao_id: int) -> pd.DataFrame:
+    return load_data_with_params(ORGAO_PROPOSICOES_QUERY, (int(orgao_id),), config_items)
+
+
+def get_deputados(config_items: tuple[tuple[str, str], ...]) -> pd.DataFrame:
+    return load_data(DEPUTADOS_QUERY, config_items)
+
+
+def get_proposicoes_deputado(config_items: tuple[tuple[str, str], ...], deputado_id: int) -> pd.DataFrame:
+    return load_data_with_params(DEPUTADO_PROPOSICOES_QUERY, (int(deputado_id),), config_items)
+
+
+def get_temas_deputado(config_items: tuple[tuple[str, str], ...], deputado_id: int) -> pd.DataFrame:
+    return load_data_with_params(DEPUTADO_TEMAS_QUERY, (int(deputado_id),), config_items)
