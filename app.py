@@ -5,6 +5,7 @@ from src.components.errors import render_app_error, render_connection_error, ren
 from src.components.filters import apply_sidebar_filters
 from src.components.layout import apply_global_style
 from src.services import config_to_cache_key, get_base_proposicoes, get_connection, get_mysql_config
+from src.views.deputado_detalhado import render_deputado_detalhado
 from src.views.ux_deputados_partidos import render_deputados_partidos_ux
 from src.views.ux_explorar_proposicoes import render_explorar_proposicoes_ux
 from src.views.ux_metodologia import render_metodologia_ux
@@ -16,6 +17,7 @@ PAGES = [
     "Visão Geral",
     "Explorar Proposições",
     "Deputados e Partidos",
+    "Perfil do Deputado",
     "Temas e Tramitações",
     "Metodologia dos Dados",
 ]
@@ -75,6 +77,8 @@ def render_page(config_items: tuple[tuple[str, str], ...], base_df) -> None:
         render_explorar_proposicoes_ux(config_items, filtered_df)
     elif page == "Deputados e Partidos":
         render_deputados_partidos_ux(config_items, filtered_df)
+    elif page == "Perfil do Deputado":
+        render_deputado_detalhado(config_items)
     elif page == "Temas e Tramitações":
         render_temas_tramitacoes_ux(config_items, filtered_df)
     elif page == "Metodologia dos Dados":
