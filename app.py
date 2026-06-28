@@ -1,7 +1,9 @@
 import streamlit as st
 from mysql.connector import Error as MySQLError
 
+from src.components.errors import render_app_error, render_connection_error, render_empty_database_message
 from src.components.filters import apply_sidebar_filters
+from src.components.layout import apply_global_style
 from src.services import config_to_cache_key, get_base_proposicoes, get_connection, get_mysql_config
 from src.views.deputado_detalhado import render_deputado_detalhado
 from src.views.deputados import render_deputados
@@ -22,6 +24,7 @@ st.set_page_config(
     page_title="Análise Legislativa - Câmara dos Deputados",
     layout="wide",
 )
+apply_global_style()
 
 
 def render_header() -> None:
@@ -40,20 +43,9 @@ def load_app_data() -> tuple[tuple[tuple[str, str], ...], object]:
     return config_items, base_df
 
 
-def render_connection_error(exc: Exception) -> None:
-    st.error("Não foi possível conectar ao MySQL configurado.")
-    st.info(
-        "Se a aplicação estiver no Streamlit Cloud, configure os dados do Aiven "
-        "em App settings > Secrets. Sem esses secrets, o app tenta usar o MySQL local."
-    )
-    st.caption(f"Detalhe técnico: {exc}")
-    st.stop()
-
-
 def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     if base_df.empty:
-        st.warning("Não há proposições carregadas no banco.")
-        st.stop()
+        render_empty_database_message()
 
     filtered_df = apply_sidebar_filters(base_df)
     tabs = st.tabs(
@@ -115,9 +107,7 @@ def main() -> None:
     except MySQLError as exc:
         render_connection_error(exc)
     except Exception as exc:
-        st.error("Falha ao carregar a configuração de conexão.")
-        st.caption(f"Detalhe técnico: {exc}")
-        st.stop()
+        render_app_error(exc)
 
     render_tabs(config_items, base_df)
 

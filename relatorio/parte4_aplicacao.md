@@ -58,6 +58,8 @@ As visualizações incluem tabelas interativas com `st.dataframe`, métricas com
 
 As principais tabelas também possuem botão de exportação em CSV, o que permite reaproveitar os resultados filtrados em planilhas ou anexos de análise.
 
+A interface usa um padrão visual único para métricas, tabelas, caixas de ajuda e mensagens de retorno. Também há tratamento específico para erros comuns de conexão, como senha incorreta, banco inexistente, host inacessível e certificado CA inválido.
+
 ## Funcionalidades didáticas
 
 A aplicação também foi ampliada para facilitar o uso por pessoas sem familiaridade prévia com o processo legislativo. A página inicial apresenta o objetivo do sistema e orienta a navegação. A aba "Entenda uma Proposição" resume uma proposição específica, mostrando tipo, número, ano, ementa, autores, partidos, temas, situação, órgãos envolvidos e linha do tempo das tramitações registradas.

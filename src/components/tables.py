@@ -59,7 +59,7 @@ DISPLAY_COLUMN_LABELS = {
 
 def show_dataframe(
     df: pd.DataFrame,
-    empty_message: str = "Nenhum registro encontrado.",
+    empty_message: str = "Nenhum resultado encontrado com os filtros atuais. Remova algum filtro para ampliar a busca.",
     link_columns: dict | None = None,
 ) -> None:
     if df.empty:

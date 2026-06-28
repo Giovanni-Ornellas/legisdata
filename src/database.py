@@ -124,7 +124,7 @@ def connect_mysql(config: dict[str, Any], autocommit: bool = True):
 def run_select_query(connection, query: str, params: tuple | None = None) -> pd.DataFrame:
     normalized = query.strip().lower()
     if not normalized.startswith("select") and not normalized.startswith("with"):
-        raise ValueError("A aplicacao executa apenas consultas SELECT.")
+        raise ValueError("A aplicação executa apenas consultas SELECT.")
 
     connection.ping(reconnect=True, attempts=2, delay=1)
     cursor = connection.cursor(dictionary=True)
