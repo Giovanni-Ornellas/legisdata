@@ -1,6 +1,7 @@
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.controls import select_table_limit, select_top_n
 from src.components.help_text import render_help_box
 from src.components.tables import show_dataframe
 from src.services import get_deputados, get_proposicoes_deputado, get_temas_deputado
@@ -53,7 +54,9 @@ def render_deputado_detalhado(config_items: tuple[tuple[str, str], ...]) -> None
     temas = get_temas_deputado(config_items, int(deputado_id))
 
     st.metric("Proposições assinadas no banco", len(proposicoes))
-    plot_bar(temas, "tema", "quantidade_proposicoes", "Temas mais frequentes nas proposições do deputado", top_n=10, horizontal=True)
+    top_n = select_top_n(default=10)
+    table_limit = select_table_limit(default=50)
+    plot_bar(temas, "tema", "quantidade_proposicoes", "Temas mais frequentes nas proposições do deputado", top_n=top_n, horizontal=True)
 
     st.markdown("### Proposições assinadas")
-    show_dataframe(proposicoes)
+    show_dataframe(proposicoes.head(table_limit))

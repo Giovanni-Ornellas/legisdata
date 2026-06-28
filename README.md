@@ -216,7 +216,9 @@ As abas implementadas são:
 - Espectro Político
 - Glossário
 
-A aplicação também possui filtros globais na barra lateral para busca textual, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. As tabelas principais permitem exportação em CSV, e os gráficos usam Plotly para facilitar a leitura dos rankings e distribuições.
+A aplicação também possui filtros globais na barra lateral para busca textual, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. A navegação é agrupada por assunto na barra lateral para evitar excesso de abas na tela. As tabelas principais permitem exportação em CSV, e os gráficos usam Plotly para facilitar a leitura dos rankings e distribuições.
+
+As telas com rankings e tabelas maiores possuem controles de limite, como quantidade de linhas exibidas e tamanho do Top N. Isso mantém a interface leve mesmo quando o banco receber cargas maiores.
 
 ### Funcionalidades didáticas
 

@@ -60,6 +60,8 @@ As principais tabelas também possuem botão de exportação em CSV, o que permi
 
 A interface usa um padrão visual único para métricas, tabelas, caixas de ajuda e mensagens de retorno. Também há tratamento específico para erros comuns de conexão, como senha incorreta, banco inexistente, host inacessível e certificado CA inválido.
 
+A navegação foi organizada em grupos na barra lateral, reduzindo a quantidade de abas simultâneas e carregando apenas a página selecionada. Telas com rankings ou tabelas extensas possuem controles de limite, como Top N e quantidade de linhas exibidas, para manter a aplicação legível com bases maiores.
+
 ## Funcionalidades didáticas
 
 A aplicação também foi ampliada para facilitar o uso por pessoas sem familiaridade prévia com o processo legislativo. A página inicial apresenta o objetivo do sistema e orienta a navegação. A aba "Entenda uma Proposição" resume uma proposição específica, mostrando tipo, número, ano, ementa, autores, partidos, temas, situação, órgãos envolvidos e linha do tempo das tramitações registradas.

@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from src.components.controls import select_table_limit
 from src.components.help_text import render_help_box
 from src.components.tables import show_dataframe
 from src.components.timeline import render_timeline
@@ -123,4 +124,5 @@ def render_entenda_proposicao(
         )
         show_dataframe(orgao_counts)
 
-    render_timeline(tramitacoes)
+    timeline_limit = select_table_limit("Eventos exibidos na linha do tempo", default=50, maximum=200)
+    render_timeline(tramitacoes.head(timeline_limit))

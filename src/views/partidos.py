@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.controls import select_table_limit, select_top_n
 from src.components.help_text import render_help_box, render_query_explanation
 from src.components.tables import download_csv, show_dataframe
 from src.content.explicacoes_consultas import EXPLICACOES_CONSULTAS
@@ -16,8 +17,10 @@ def render_partidos(config_items: tuple[tuple[str, str], ...], filtered_df: pd.D
     )
     render_query_explanation(EXPLICACOES_CONSULTAS["ranking_partidos"])
     df = get_ranking_partidos(config_items)
-    plot_bar(df, "partido", "quantidade_proposicoes", "Top partidos por proposições", top_n=10)
-    show_dataframe(df)
+    top_n = select_top_n(default=10)
+    table_limit = select_table_limit(default=30)
+    plot_bar(df, "partido", "quantidade_proposicoes", "Top partidos por proposições", top_n=top_n)
+    show_dataframe(df.head(table_limit))
     download_csv(df, "ranking_partidos.csv")
 
     st.markdown("#### Distribuição no recorte filtrado")
@@ -38,4 +41,4 @@ def render_partidos(config_items: tuple[tuple[str, str], ...], filtered_df: pd.D
         .reset_index(name="quantidade")
         .rename(columns={"index": "partido"})
     )
-    plot_bar(local_df, "partido", "quantidade", "Partidos no recorte filtrado", top_n=10)
+    plot_bar(local_df, "partido", "quantidade", "Partidos no recorte filtrado", top_n=top_n)

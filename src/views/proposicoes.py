@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from src.components.controls import select_table_limit
 from src.components.help_text import render_help_box, render_query_explanation
 from src.components.tables import download_csv, show_dataframe
 from src.content.explicacoes_consultas import EXPLICACOES_CONSULTAS
@@ -42,8 +43,9 @@ def render_proposicoes_temas(filtered_df: pd.DataFrame) -> None:
     render_query_explanation(EXPLICACOES_CONSULTAS["proposicoes_temas"])
     sem_tema = int((filtered_df["temas"] == "Sem tema associado").sum())
     st.caption(f"{sem_tema} proposições no recorte aparecem sem tema associado e permanecem visíveis pelo LEFT JOIN.")
+    table_limit = select_table_limit(default=50)
     show_dataframe(
-        filtered_df[PROPOSICOES_COLS],
+        filtered_df[PROPOSICOES_COLS].head(table_limit),
         link_columns={"link_camara": st.column_config.LinkColumn("Câmara")},
     )
     download_csv(filtered_df[PROPOSICOES_COLS], "proposicoes_temas.csv")
@@ -56,7 +58,7 @@ def render_explorar(filtered_df: pd.DataFrame) -> None:
         "Use esta aba para procurar proposições por ementa, autor, partido, tema ou situação. "
         "A tabela mostra um resumo amplo dos campos mais importantes para análise.",
     )
-    rows_per_page = st.slider("Quantidade de linhas na tabela", min_value=10, max_value=200, value=50, step=10)
+    rows_per_page = select_table_limit("Quantidade de linhas na tabela", default=50, maximum=200)
     show_dataframe(
         filtered_df[EXPLORAR_COLS].head(rows_per_page),
         link_columns={"link_camara": st.column_config.LinkColumn("Câmara")},

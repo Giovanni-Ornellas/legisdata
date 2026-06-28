@@ -1,6 +1,7 @@
 import streamlit as st
 
 from src.components.charts import plot_bar
+from src.components.controls import select_table_limit, select_top_n
 from src.components.help_text import render_help_box
 from src.components.tables import show_dataframe
 from src.services import get_orgaos, get_proposicoes_por_orgao, get_ranking_orgaos
@@ -19,15 +20,17 @@ def render_orgaos(config_items: tuple[tuple[str, str], ...]) -> None:
     col1, col2 = st.columns(2)
     col1.metric("Órgãos cadastrados", len(orgaos))
     col2.metric("Tipos de órgão", orgaos["tipo_orgao"].nunique() if not orgaos.empty else 0)
+    top_n = select_top_n(default=15)
+    table_limit = select_table_limit(default=50)
 
     st.markdown("### Tipos de órgão")
     tipos = orgaos["tipo_orgao"].fillna("Sem tipo informado").value_counts().reset_index()
     tipos.columns = ["tipo_orgao", "quantidade"]
-    plot_bar(tipos, "tipo_orgao", "quantidade", "Quantidade de órgãos por tipo", top_n=12, horizontal=True)
+    plot_bar(tipos, "tipo_orgao", "quantidade", "Quantidade de órgãos por tipo", top_n=top_n, horizontal=True)
 
     st.markdown("### Órgãos com mais tramitações")
-    plot_bar(ranking, "sigla", "quantidade_tramitacoes", "Ranking de órgãos por tramitações", top_n=15)
-    show_dataframe(ranking.head(30))
+    plot_bar(ranking, "sigla", "quantidade_tramitacoes", "Ranking de órgãos por tramitações", top_n=top_n)
+    show_dataframe(ranking.head(table_limit))
 
     st.markdown("### Proposições que passaram por um órgão")
     if orgaos.empty:
@@ -43,4 +46,4 @@ def render_orgaos(config_items: tuple[tuple[str, str], ...]) -> None:
     st.caption(f"Tipo de órgão: {selecionado['tipo_orgao'] or 'Não informado'}")
 
     proposicoes = get_proposicoes_por_orgao(config_items, int(orgao_id))
-    show_dataframe(proposicoes)
+    show_dataframe(proposicoes.head(table_limit))

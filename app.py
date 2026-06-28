@@ -20,6 +20,35 @@ from src.views.temas import render_temas_acima_media
 from src.views.tramitacoes import render_tramitacoes_acima_media, render_ultima_tramitacao
 
 
+PAGE_GROUPS = {
+    "Panorama": [
+        "Visão Geral",
+        "Qualidade dos Dados",
+        "Metodologia dos Dados",
+    ],
+    "Proposições": [
+        "Entenda uma Proposição",
+        "Proposições e Temas",
+        "Temas Acima da Média",
+        "Explorar",
+    ],
+    "Parlamentares e Partidos": [
+        "Ranking de Partidos",
+        "Ranking de Deputados",
+        "Deputado Detalhado",
+        "Espectro Político",
+    ],
+    "Tramitação e Órgãos": [
+        "Última Tramitação",
+        "Tramitações Acima da Média",
+        "Órgãos",
+    ],
+    "Apoio": [
+        "Glossário",
+    ],
+}
+
+
 st.set_page_config(
     page_title="Análise Legislativa - Câmara dos Deputados",
     layout="wide",
@@ -43,60 +72,48 @@ def load_app_data() -> tuple[tuple[tuple[str, str], ...], object]:
     return config_items, base_df
 
 
-def render_tabs(config_items: tuple[tuple[str, str], ...], base_df) -> None:
+def select_page() -> str:
+    st.sidebar.header("Navegação")
+    group = st.sidebar.radio("Grupo de páginas", list(PAGE_GROUPS.keys()))
+    return st.sidebar.radio("Página", PAGE_GROUPS[group])
+
+
+def render_page(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     if base_df.empty:
         render_empty_database_message()
 
     filtered_df = apply_sidebar_filters(base_df)
-    tabs = st.tabs(
-        [
-            "Visão Geral",
-            "Qualidade dos Dados",
-            "Metodologia dos Dados",
-            "Entenda uma Proposição",
-            "Ranking de Partidos",
-            "Ranking de Deputados",
-            "Deputado Detalhado",
-            "Órgãos",
-            "Proposições e Temas",
-            "Última Tramitação",
-            "Temas Acima da Média",
-            "Tramitações Acima da Média",
-            "Explorar",
-            "Espectro Político",
-            "Glossário",
-        ]
-    )
+    page = select_page()
 
-    with tabs[0]:
+    if page == "Visão Geral":
         render_home(config_items, base_df, filtered_df)
-    with tabs[1]:
+    elif page == "Qualidade dos Dados":
         render_qualidade_dados(config_items)
-    with tabs[2]:
+    elif page == "Metodologia dos Dados":
         render_metodologia_dados(base_df)
-    with tabs[3]:
+    elif page == "Entenda uma Proposição":
         render_entenda_proposicao(config_items, filtered_df)
-    with tabs[4]:
+    elif page == "Ranking de Partidos":
         render_partidos(config_items, filtered_df)
-    with tabs[5]:
+    elif page == "Ranking de Deputados":
         render_deputados(config_items)
-    with tabs[6]:
+    elif page == "Deputado Detalhado":
         render_deputado_detalhado(config_items)
-    with tabs[7]:
+    elif page == "Órgãos":
         render_orgaos(config_items)
-    with tabs[8]:
+    elif page == "Proposições e Temas":
         render_proposicoes_temas(filtered_df)
-    with tabs[9]:
+    elif page == "Última Tramitação":
         render_ultima_tramitacao(filtered_df)
-    with tabs[10]:
+    elif page == "Temas Acima da Média":
         render_temas_acima_media(config_items, filtered_df)
-    with tabs[11]:
+    elif page == "Tramitações Acima da Média":
         render_tramitacoes_acima_media(config_items)
-    with tabs[12]:
+    elif page == "Explorar":
         render_explorar(filtered_df)
-    with tabs[13]:
+    elif page == "Espectro Político":
         render_espectro(filtered_df)
-    with tabs[14]:
+    elif page == "Glossário":
         render_glossario()
 
 
@@ -109,7 +126,7 @@ def main() -> None:
     except Exception as exc:
         render_app_error(exc)
 
-    render_tabs(config_items, base_df)
+    render_page(config_items, base_df)
 
 
 if __name__ == "__main__":
