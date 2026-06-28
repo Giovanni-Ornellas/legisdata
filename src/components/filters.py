@@ -19,9 +19,17 @@ def contains_any_csv_value(cell: str, selected: list[str]) -> bool:
     return bool(values.intersection(selected))
 
 
+def render_filter_feedback(total_rows: int, filtered_rows: int, termo: str, term_matches: int) -> None:
+    st.sidebar.caption(f"Registros no recorte: {filtered_rows} de {total_rows}")
+    if termo and term_matches > 0 and filtered_rows == 0:
+        st.sidebar.warning("A palavra-chave existe no banco, mas os outros filtros removeram os resultados.")
+
+
 def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
     st.sidebar.header("Filtros")
 
+    total_rows = len(df)
+    term_matches = total_rows
     termo = st.sidebar.text_input(
         "Texto da ementa ou palavra-chave",
         help="Busca no texto da ementa e também em autores, partidos, temas e situação.",
@@ -72,6 +80,7 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
         mask = pd.Series(False, index=filtered.index)
         for col in searchable_cols:
             mask = mask | filtered[col].fillna("").str.lower().str.contains(termo_lower, regex=False)
+        term_matches = int(mask.sum())
         filtered = filtered[mask]
 
     if anos:
@@ -94,6 +103,8 @@ def apply_sidebar_filters(df: pd.DataFrame) -> pd.DataFrame:
         ]
     if somente_sem_tema:
         filtered = filtered[filtered["temas"] == "Sem tema associado"]
+
+    render_filter_feedback(total_rows, len(filtered), termo, term_matches)
 
     if ordenacao == "Mais tramitações":
         return filtered.sort_values(["quantidade_tramitacoes", "data_apresentacao"], ascending=[False, False])

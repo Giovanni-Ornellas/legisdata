@@ -82,8 +82,8 @@ def render_page(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     if base_df.empty:
         render_empty_database_message()
 
-    filtered_df = apply_sidebar_filters(base_df)
     page = select_page()
+    filtered_df = apply_sidebar_filters(base_df)
 
     if page == "Visão Geral":
         render_home(config_items, base_df, filtered_df)
@@ -92,7 +92,7 @@ def render_page(config_items: tuple[tuple[str, str], ...], base_df) -> None:
     elif page == "Metodologia dos Dados":
         render_metodologia_dados(base_df)
     elif page == "Entenda uma Proposição":
-        render_entenda_proposicao(config_items, filtered_df)
+        render_entenda_proposicao(config_items, base_df, filtered_df)
     elif page == "Ranking de Partidos":
         render_partidos(config_items, filtered_df)
     elif page == "Ranking de Deputados":
@@ -123,8 +123,10 @@ def main() -> None:
         config_items, base_df = load_app_data()
     except MySQLError as exc:
         render_connection_error(exc)
+        return
     except Exception as exc:
         render_app_error(exc)
+        return
 
     render_page(config_items, base_df)
 

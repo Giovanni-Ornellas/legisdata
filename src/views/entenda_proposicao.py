@@ -61,6 +61,7 @@ def _select_proposicao(filtered_df: pd.DataFrame) -> pd.Series | None:
 
 def render_entenda_proposicao(
     config_items: tuple[tuple[str, str], ...],
+    base_df: pd.DataFrame,
     filtered_df: pd.DataFrame,
 ) -> None:
     st.subheader("Entenda uma Proposição")
@@ -69,7 +70,19 @@ def render_entenda_proposicao(
         "Esta página resume uma proposição específica em linguagem simples, usando apenas os campos disponíveis no banco: ementa, autores, partidos, temas, situação, órgãos e tramitações.",
     )
 
-    selected = _select_proposicao(filtered_df)
+    usar_filtros = st.checkbox(
+        "Aplicar filtros laterais nesta seleção",
+        value=False,
+        help=(
+            "Quando desmarcado, a busca desta página consulta todas as proposições carregadas. "
+            "Marque para restringir a seleção aos filtros escolhidos no menu lateral."
+        ),
+    )
+    source_df = filtered_df if usar_filtros else base_df
+    if not usar_filtros:
+        st.caption("A seleção abaixo usa a base completa. Os filtros laterais continuam disponíveis nas demais páginas.")
+
+    selected = _select_proposicao(source_df)
     if selected is None:
         return
 
