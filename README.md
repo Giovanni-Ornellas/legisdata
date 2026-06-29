@@ -2,266 +2,161 @@
 
 Projeto final da disciplina Banco de Dados I - ICP489.
 
-O objetivo do projeto é coletar, organizar e visualizar dados legislativos da Câmara dos Deputados em um banco relacional MySQL. A aplicação Web foi feita em Streamlit e é somente de leitura: ela consulta o banco, exibe tabelas, métricas e gráficos, mas não insere, altera nem exclui registros.
+A aplicação coleta, armazena e visualiza dados legislativos da Câmara dos Deputados em um banco relacional MySQL. A interface foi desenvolvida com Streamlit e é somente de leitura.
 
-## Estrutura de pastas
+## Estrutura
 
 ```text
 .
 ├── app.py
-├── src/
-│   ├── database.py
-│   ├── queries.py
-│   ├── services.py
-│   ├── components/
-│   └── views/
+├── docker-compose.yml
+├── requirements.txt
 ├── scripts/
 ├── sql/
-├── relatorio/
-├── docs/
+├── src/
 ├── tests/
-└── .streamlit/
+├── .env.example
+└── .streamlit/secrets.toml.example
 ```
 
-- `app.py`: inicialização da aplicação, cabeçalho, tratamento de conexão e navegação por abas.
-- `src/database.py`: conexão com MySQL, suporte a Aiven/SSL e execução segura de consultas.
-- `src/queries.py`: consultas SQL usadas pela aplicação.
-- `src/services.py`: funções que carregam dados, aplicam cache e preparam `DataFrame`.
-- `src/views/`: telas da aplicação, separadas por domínio.
-- `src/components/`: filtros, gráficos, métricas, tabelas e exportação CSV.
-- `src/content/`: glossário, explicações das consultas e textos didáticos.
-- `scripts/`: scripts para popular e validar o banco.
-- `sql/`: modelo físico e consultas da Parte 3.
-- `docs/`: documentação técnica para manutenção em grupo.
+- `app.py`: ponto de entrada da aplicação Streamlit.
+- `src/`: código da aplicação, consultas, conexão com banco, componentes e telas.
+- `sql/`: modelo físico e consultas SQL.
+- `scripts/`: carga, validação e sincronização de dados.
+- `tests/`: testes do modelo relacional.
+- `.env.example`: modelo de variáveis para execução local.
+- `.streamlit/secrets.toml.example`: modelo de credenciais usado pelo Streamlit.
 
-Mais detalhes estão em [`docs/estrutura.md`](docs/estrutura.md).
+## Requisitos
 
-## Banco de dados local
+- Python 3.10+
+- Docker e Docker Compose
+- MySQL client opcional, para inspeção manual do banco
 
-O projeto usa MySQL e o schema principal se chama `trabalho_final`.
+## Configuração local
 
-### Subir MySQL com Docker
-
-Opcionalmente, copie `.env.example` para `.env` e ajuste as credenciais.
-Sem `.env`, o `docker-compose.yml` usa os valores padrão:
-
-- banco: `trabalho_final`
-- usuário: `bdi`
-- senha: `bdi`
-- senha do root: `root`
-- porta: `3306`
-
-```bash
-docker compose up -d
-```
-
-Se a porta `3306` já estiver ocupada por outro MySQL local, use outra porta externa:
-
-```bash
-MYSQL_PORT=3307 docker compose up -d
-```
-
-Na primeira inicialização, o Docker executa automaticamente:
-
-```text
-sql/parte2_modelo_fisico.sql
-```
-
-Esse script cria as tabelas do modelo físico sem apagar dados existentes.
-
-### Conectar no banco
-
-```bash
-docker compose exec mysql mysql -u bdi -pbdi trabalho_final
-```
-
-Ou pelo cliente MySQL local:
-
-```bash
-mysql -h 127.0.0.1 -P 3306 -u bdi -pbdi trabalho_final
-```
-
-Se o contêiner tiver sido iniciado com `MYSQL_PORT=3307`, use:
-
-```bash
-mysql -h 127.0.0.1 -P 3307 -u bdi -pbdi trabalho_final
-```
-
-### Criar o schema manualmente
-
-Caso o MySQL já esteja instalado fora do Docker:
-
-```bash
-mysql -h 127.0.0.1 -P 3306 -u SEU_USUARIO -p < sql/parte2_modelo_fisico.sql
-```
-
-### Verificar tabelas e contagens
-
-```bash
-mysql -h 127.0.0.1 -P 3306 -u bdi -pbdi trabalho_final -e "SHOW TABLES;"
-mysql -h 127.0.0.1 -P 3306 -u bdi -pbdi trabalho_final < sql/parte3_consultas.sql
-```
-
-Na configuração atual desta máquina, a porta `3306` estava ocupada e o contêiner foi iniciado na porta `3307`. Portanto, os comandos equivalentes são:
-
-```bash
-mysql -h 127.0.0.1 -P 3307 -u bdi -pbdi trabalho_final -e "SHOW TABLES;"
-mysql -h 127.0.0.1 -P 3307 -u bdi -pbdi trabalho_final < sql/parte3_consultas.sql
-```
-
-Observação: antes de popular o banco, as consultas da Parte 3 podem retornar zero linhas. Em especial, `Participa` precisa conter dados reais de autoria para que os rankings por partido e deputado sejam úteis.
-
-## Popular dados da API da Câmara
-
-Crie um ambiente virtual, instale as dependências e copie as variáveis locais:
+Crie o ambiente Python e instale as dependências:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
-Na configuração local deste projeto, o MySQL está em `127.0.0.1:3307`, com usuário `bdi` e senha `bdi`. Para começar com uma carga menor, ajuste no `.env`:
+Copie os arquivos de exemplo:
+
+```bash
+cp .env.example .env
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+```
+
+Revise o `.env` antes de subir o banco. O `docker-compose.yml` exige as variáveis de conexão, incluindo:
 
 ```env
-MAX_PROPOSICOES=50
-ANO_PROPOSICOES=2025
+MYSQL_ROOT_PASSWORD=
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=trabalho_final
+MYSQL_USER=
+MYSQL_PASSWORD=
 ```
 
-Para carregar mais de um ano na mesma execução, use:
+Use valores locais no `.env`. Não envie `.env`, `.streamlit/secrets.toml`, certificados ou chaves para o repositório.
+
+## Banco de dados
+
+Suba o MySQL:
+
+```bash
+docker compose up -d
+```
+
+Na primeira inicialização, o Docker executa:
+
+```text
+sql/parte2_modelo_fisico.sql
+```
+
+Para aplicar o modelo manualmente em outro MySQL:
+
+```bash
+mysql -h 127.0.0.1 -P 3306 -u SEU_USUARIO -p < sql/parte2_modelo_fisico.sql
+```
+
+Para verificar as tabelas:
+
+```bash
+mysql -h 127.0.0.1 -P 3306 -u SEU_USUARIO -p trabalho_final -e "SHOW TABLES;"
+```
+
+## Carga de dados
+
+O script de carga consulta a API de Dados Abertos da Câmara e grava os dados no MySQL:
+
+```bash
+python scripts/popular_banco.py
+```
+
+Variáveis úteis no `.env`:
+
+```env
+ANO_PROPOSICOES=2025
+MAX_PROPOSICOES=500
+```
+
+Para carregar mais de um ano:
 
 ```env
 ANOS_PROPOSICOES=2025,2026
 MAX_PROPOSICOES=250
 ```
 
-Nesse caso, `MAX_PROPOSICOES` representa a quantidade máxima de novas proposições buscadas para cada ano informado. O script consulta os IDs já existentes no banco e evita recarregar proposições já inseridas.
+O script evita duplicar registros usando as chaves do banco.
 
-Execute a população:
+## Validação
 
-```bash
-python scripts/popular_banco.py
-```
-
-O script carrega dados reais da API de Dados Abertos da Câmara e insere, quando houver dados disponíveis, as tabelas:
-
-- `Partido`
-- `Orgao`
-- `Tema`
-- `Proposicao`
-- `Deputado`
-- `Tramitacao`
-- `Participa`
-- `Classificacao`
-
-O script usa `INSERT ... ON DUPLICATE KEY UPDATE`, então pode ser executado novamente sem duplicar registros.
-
-## Validar dados carregados
-
-Depois da população, execute:
+Para conferir as tabelas carregadas:
 
 ```bash
 python scripts/validar_banco.py
 ```
 
-Esse script imprime `COUNT(*)` e `SELECT * LIMIT 10` para todas as tabelas. A tabela `Participa` deve ser conferida explicitamente, pois ela representa a autoria entre deputados e proposições e é essencial para as consultas da Parte 3.
-
-Para validar as consultas SQL da Parte 3, execute:
+Para validar as consultas principais:
 
 ```bash
 python scripts/validar_consultas_parte3.py
 ```
 
-Esse script executa as seis consultas principais, informa se cada uma rodou com sucesso e mostra a quantidade de linhas retornadas. Ele executa apenas consultas `SELECT` ou `WITH`.
-
-## Aplicação Streamlit
-
-A Parte 4 do trabalho usa Streamlit para visualizar os dados carregados no MySQL. A aplicação é somente de leitura e reutiliza as consultas da Parte 3.
-
-A interface foi pensada para usuários leigos. Além de tabelas e gráficos, ela inclui textos curtos explicando o que são proposições, autores, temas, tramitações, órgãos e situações registradas nos dados.
-
-Instale as dependências e prepare o arquivo de credenciais local:
+Para executar os testes:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+pytest
 ```
 
-Com o MySQL local em execução na porta `3307`, rode:
+## Aplicação
+
+Com o banco em execução e o arquivo `.streamlit/secrets.toml` configurado, rode:
 
 ```bash
 streamlit run app.py
 ```
 
-O arquivo `.streamlit/secrets.toml` deve seguir o modelo:
+Modelo mínimo de `.streamlit/secrets.toml`:
 
 ```toml
 [mysql]
 host = "127.0.0.1"
-port = 3307
+port = 3306
 database = "trabalho_final"
-user = "bdi"
-password = "bdi"
+user = "SEU_USUARIO"
+password = "SUA_SENHA"
 ```
 
-As abas implementadas são:
+A aplicação apresenta consultas, métricas, tabelas e gráficos sobre proposições, deputados, partidos, temas, órgãos e tramitações.
 
-- Visão Geral
-- Qualidade dos Dados
-- Metodologia dos Dados
-- Entenda uma Proposição
-- Ranking de Partidos
-- Ranking de Deputados
-- Deputado Detalhado
-- Órgãos
-- Proposições e Temas
-- Última Tramitação
-- Temas Acima da Média
-- Tramitações Acima da Média
-- Explorar
-- Espectro Político
-- Glossário
+## Aiven
 
-A aplicação também possui filtros globais na barra lateral para busca textual, tipo de proposição, partido, tema, situação, período de apresentação e proposições sem tema. A navegação é agrupada por assunto na barra lateral para evitar excesso de abas na tela. As tabelas principais permitem exportação em CSV, e os gráficos usam Plotly para facilitar a leitura dos rankings e distribuições.
-
-As telas com rankings e tabelas maiores possuem controles de limite, como quantidade de linhas exibidas e tamanho do Top N. Isso mantém a interface leve mesmo quando o banco receber cargas maiores.
-
-### Funcionalidades didáticas
-
-- Página inicial com orientação sobre o objetivo da aplicação.
-- Página de qualidade dos dados com cobertura temática, autoria e tramitação.
-- Página de metodologia com fonte, recorte, tabelas e limitações da carga.
-- Glossário legislativo com termos como proposição, ementa, tramitação, despacho, comissão e plenário.
-- Página "Entenda uma Proposição", com resumo, autores, partidos, temas, situação e linha do tempo de tramitação.
-- Páginas de órgãos e deputado detalhado para melhor aproveitamento das tabelas `Orgao`, `Tramitacao`, `Deputado` e `Participa`.
-- Explicações curtas para as consultas principais da Parte 3.
-- Cards explicativos nas páginas de proposições, temas, tramitações, partidos e deputados.
-
-## Como contribuir sem quebrar a estrutura
-
-- Nova consulta SQL da aplicação: adicionar em `src/queries.py`.
-- Nova função de carregamento/preparação de dados: adicionar em `src/services.py`.
-- Nova aba ou seção visual: criar arquivo em `src/views/` e registrar em `app.py`.
-- Novo gráfico, filtro, métrica ou tabela reutilizável: adicionar em `src/components/`.
-- Novo texto explicativo, glossário ou descrição de consulta: adicionar em `src/content/`.
-- Scripts de carga ou validação: manter em `scripts/`.
-- Não colocar credenciais reais no repositório.
-- Não executar comandos de escrita no banco pela aplicação Streamlit.
-
-## Migração para Aiven
-
-A aplicação pode usar o MySQL local ou um MySQL hospedado no Aiven. Não há credenciais reais de Aiven no repositório.
-
-Para apontar o Streamlit para o Aiven, copie o exemplo de secrets e preencha o arquivo local, que não deve ser commitado:
-
-```bash
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml
-```
-
-Modelo de configuração para Aiven:
+Para usar MySQL no Aiven, preencha `.streamlit/secrets.toml` com os dados do serviço e configure SSL:
 
 ```toml
 [mysql]
@@ -276,51 +171,10 @@ ssl_verify_cert = true
 ssl_verify_identity = false
 ```
 
-Baixe o certificado CA no painel do Aiven e salve localmente em `certs/aiven-ca.pem`. Arquivos `.pem` e `.crt` dentro de `certs/` estão ignorados pelo Git.
+O certificado CA deve ficar apenas localmente, por exemplo em `certs/aiven-ca.pem`.
 
-No Streamlit Cloud, o arquivo local `.streamlit/secrets.toml` não é enviado para o servidor. Nesse caso, abra a aplicação no Streamlit Cloud, entre em `App settings > Secrets` e cole os dados no formato abaixo. Use `ssl_ca_content` para colar o conteúdo completo do certificado CA:
-
-```toml
-[mysql]
-host = "SEU_HOST_AIVEN"
-port = 18646
-database = "defaultdb"
-user = "avnadmin"
-password = "SUA_SENHA_AIVEN"
-ssl_mode = "REQUIRED"
-ssl_ca_content = """
------BEGIN CERTIFICATE-----
-COLE_AQUI_O_CA_CERTIFICATE_DO_AIVEN
------END CERTIFICATE-----
-"""
-ssl_verify_cert = true
-ssl_verify_identity = false
-```
-
-Para levar os dados locais para o Aiven, o caminho recomendado é usar o script incremental de sincronização. Ele lê o banco local pelas variáveis do `.env` ou pelos valores padrão locais, lê o destino em `.streamlit/secrets.toml` e usa `ON DUPLICATE KEY UPDATE`, sem apagar dados:
+Para sincronizar dados locais com o banco configurado no Streamlit:
 
 ```bash
 python scripts/sincronizar_aiven.py
 ```
-
-Também é possível exportar e importar manualmente com `mysqldump`, se o grupo preferir gerar um arquivo SQL de transporte:
-
-```bash
-mysqldump --single-transaction --no-tablespaces \
-  -h 127.0.0.1 -P 3307 -u bdi -p trabalho_final > dump_trabalho_final.sql
-```
-
-Depois, importe no banco `defaultdb` do Aiven:
-
-```bash
-mysql --ssl-mode=REQUIRED \
-  -h SEU_HOST_AIVEN -P 18646 -u avnadmin -p defaultdb < dump_trabalho_final.sql
-```
-
-Com o `.streamlit/secrets.toml` preenchido, execute:
-
-```bash
-streamlit run app.py
-```
-
-Os scripts `scripts/popular_banco.py` e `scripts/validar_banco.py` também aceitam as variáveis `MYSQL_SSL_MODE`, `MYSQL_SSL_CA`, `MYSQL_SSL_VERIFY_CERT` e `MYSQL_SSL_VERIFY_IDENTITY` no `.env`.
