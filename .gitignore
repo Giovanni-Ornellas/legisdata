@@ -1,0 +1,41 @@
+# Ambiente Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Variaveis de ambiente
+.env
+.env.local
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Certificados e chaves
+certs/
+!certs/
+certs/*
+!certs/README.md
+*.pem
+*.key
+*.p12
+*.jks
+
+# Banco local
+*.db
+*.sqlite
+
+# Logs e sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Arquivos locais do projeto
+.codex/
+.graphify/
+AGENTS.md
+Contexto/
+docs/
+tests/.graphify/
+tests/novo_teste.py
