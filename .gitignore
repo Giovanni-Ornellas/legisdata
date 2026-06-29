@@ -37,5 +37,8 @@ Thumbs.db
 AGENTS.md
 Contexto/
 docs/
+relatorio/
+consultas_novas_aplicacao_para_prints.sql
+consultas_parte3_para_prints.sql
 tests/.graphify/
 tests/novo_teste.py
