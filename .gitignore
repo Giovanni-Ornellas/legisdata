@@ -10,6 +10,7 @@ __pycache__/
 .graphify/
 AGENTS.md
 Contexto/
+docs/
 
 .graphify/branch.json
 .graphify/worktree.json
